@@ -65,6 +65,11 @@
 (global-set-key (kbd "C-x C-j") 'skk-mode)
 (setq skk-server-host "localhost")
 (setq skk-server-portnum 1178)
+(setq skk-sticky-key ";")
+(setq skk-jisyo-code 'utf-8)
+(setq skk-jisyo "~/.local/share/skk/skk-jisyo.utf8")
+(setq skk-backup-jisyo "~/.local/share/skk/skk-jisyo.utf8.bak")
+(setq skk-record-file "~/.local/share/skk/skk-record")
 
 ;; key binding
 (global-set-key (kbd "C-h") 'delete-backward-char)
