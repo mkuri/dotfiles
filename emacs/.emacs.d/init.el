@@ -25,7 +25,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (dracula-theme company counsel swiper ivy ddskk evil))))
+    (js2-mode yasnippet-snippets yasnippet web-mode ranger dracula-theme company counsel swiper ivy ddskk evil))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -50,9 +50,21 @@
 (global-set-key (kbd "C-s") 'swiper)
 (define-key evil-normal-state-map (kbd "SPC SPC") 'counsel-M-x)
 (define-key evil-normal-state-map (kbd "SPC f f") 'counsel-find-file)
+(define-key evil-normal-state-map (kbd "SPC f r") 'counsel-recentf)
+(define-key evil-normal-state-map (kbd "SPC b b") 'ivy-switch-buffer)
 
 ;; company
 (global-company-mode)
+(global-set-key (kbd "C-SPC") 'company-complete)
+(define-key company-active-map (kbd "C-h") 'delete-backward-char)
+(define-key company-active-map (kbd "C-n") 'company-select-next)
+(define-key company-active-map (kbd "C-p") 'company-select-previous)
+(define-key company-search-map (kbd "C-n") 'company-select-next)
+(define-key company-search-map (kbd "C-p") 'company-select-previous)
+(setq company-idle-delay nil)
+
+;; yasnippet
+(yas-global-mode 1)
 
 ;; org-mode
 (global-set-key (kbd "C-c l") 'org-store-link)
@@ -62,18 +74,37 @@
 (setq org-startup-indented t)
 
 ;; skk
-(global-set-key (kbd "C-x C-j") 'skk-mode)
+(global-set-key (kbd "C-x j") 'skk-mode)
 (setq skk-server-host "localhost")
 (setq skk-server-portnum 1178)
 (setq skk-sticky-key ";")
 (setq skk-jisyo-code 'utf-8)
-(setq skk-jisyo "~/.local/share/skk/skk-jisyo.utf8")
-(setq skk-backup-jisyo "~/.local/share/skk/skk-jisyo.utf8.bak")
-(setq skk-record-file "~/.local/share/skk/skk-record")
+(setq skk-jisyo (concat (getenv "XDG_DATA_HOME") "/skk/skk-jisyo.utf8"))
+(setq skk-backup-jisyo (concat (getenv "XDG_DATA_HOME") "/skk/skk-jisyo.utf8.bak"))
+(setq skk-record-file (concat (getenv "XDG_DATA_HOME") "/skk/skk-record"))
+
+;; ranger
+(define-key evil-normal-state-map (kbd "SPC f d") 'ranger)
+(setq ranger-cleanup-eagerly t)
+
+;; modes
+;;; web-mode
+(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
 
 ;; key binding
 (global-set-key (kbd "C-h") 'delete-backward-char)
+;;(define-key evil-insert-state-map (kbd "C-n") 'next-line)
+;;(define-key evil-insert-state-map (kbd "C-p") 'previous-line)
+(define-key evil-insert-state-map (kbd "C-a") 'beginning-of-line)
+(define-key evil-insert-state-map (kbd "C-e") 'end-of-line)
+(define-key evil-normal-state-map (kbd "j") 'evil-next-visual-line)
+(define-key evil-normal-state-map (kbd "k") 'evil-previous-visual-line)
 (define-key evil-normal-state-map (kbd "SPC f e d")
   '(lambda ()
      (interactive)
      (find-file "~/.emacs.d/init.el")))
+(define-key evil-normal-state-map (kbd "SPC !") 'shell-command)
+;;; window
+(define-key evil-normal-state-map (kbd "SPC w d") 'delete-window)
+(define-key evil-normal-state-map (kbd "SPC w h") 'split-window-vertically)
+(define-key evil-normal-state-map (kbd "SPC w v") 'split-window-horizontally)
