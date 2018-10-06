@@ -12,11 +12,13 @@ else
   Plug 'roxma/vim-hug-neovim-rpc'
 endif
 Plug 'autozimu/LanguageClient-neovim', {
-    \ 'branch': 'next',
-    \ 'do': 'bash install.sh',
-    \ }
+   \ 'branch': 'next',
+   \ 'do': 'bash install.sh',
+   \ }
 Plug 'w0rp/ale'
 Plug 'tyru/caw.vim'
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
 " List ends here. Plugins become visible to Vim after this call.
 call plug#end()
 
@@ -52,6 +54,11 @@ set wrapscan
 nnoremap <Leader>f :Files<CR>
 nnoremap <Leader>b :Buffers<CR>
 nnoremap <Leader>; :Commands<CR>
+
+nnoremap j gj
+nnoremap k gk
+nnoremap gj j
+nnoremap gk k
 
 " deoplete
 let g:deoplete#enable_at_startup = 1
