@@ -60,13 +60,21 @@ noremap k gk
 noremap gj j
 noremap gk k
 
+" templates
+autocmd BufNewFile requirements.in 0r $HOME/.config/nvim/templates/requirements.in.template
+
 " deoplete
 let g:deoplete#enable_at_startup = 1
 
 " language server protocol
 let g:LanguageClient_serverCommands = {
   \ 'python': ['pyls'],
+  \ 'c': ['cquery', '--log-file=/tmp/cquery.log'],
+  \ 'cpp': ['cquery', '--log-file=/tmp/cquery.log'],
   \ }
+let g:LanguageClient_loadSettings = 1
+let g:LanguageClient_settingsPath = '/home/makoto/.config/nvim/settings.json'
+set completefunc=LanguageClient#complete
 
 " python
 let g:python_host_prog = '/usr/bin/python2'
