@@ -68,8 +68,6 @@ alias -g fhf='$(fd . $HOME/ --type f --hidden | fzf)'
 alias -g fcf='$(fd . ./ --type f --hidden | fzf)'
 alias -g faf='$(fd . / --type f | fzf)'
 
-alias vim='nvim'
-
 # options
 setopt no_beep
 setopt share_history
