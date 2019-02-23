@@ -11,6 +11,7 @@ Plug 'prabirshrestha/async.vim'
 Plug 'prabirshrestha/vim-lsp'
 Plug 'prabirshrestha/asyncomplete.vim'
 Plug 'prabirshrestha/asyncomplete-lsp.vim'
+Plug 'prabirshrestha/asyncomplete-ultisnips.vim'
 
 " List ends here. Plugins become visible to Vim after this call.
 call plug#end()
@@ -22,6 +23,7 @@ set noswapfile
 set viminfo+=n~/.local/share/vim/.viminfo
 set clipboard=unnamedplus
 let mapleader="\<Space>"
+set laststatus=2
 
 " Color
 if (has("termguicolors"))
@@ -71,6 +73,15 @@ if executable('clangd')
 endif
 let g:lsp_log_verbose = 1
 let g:lsp_log_file = expand('~/.local/share/vim/vim-lsp.log')
+
+" asyncomplete
+if has('python3')
+    call asyncomplete#register_source(asyncomplete#sources#ultisnips#get_source_options({
+        \ 'name': 'ultisnips',
+        \ 'whitelist': ['*'],
+        \ 'completor': function('asyncomplete#sources#ultisnips#completor'),
+        \ }))
+endif
 
 " python
 let g:python_host_prog = '/usr/bin/python2'
