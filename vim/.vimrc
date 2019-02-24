@@ -71,6 +71,18 @@ if executable('clangd')
     autocmd FileType c,cpp setlocal omnifunc=lsp#complete
   augroup END
 endif
+if executable('pyls')
+  " pip install python-language-server
+  augroup LspPython
+    au!
+    autocmd User lsp_setup call lsp#register_server({
+        \ 'name': 'pyls',
+        \ 'cmd': {server_info->['pyls']},
+        \ 'whitelist': ['python'],
+        \ })
+    autocmd FileType python setlocal omnifunc=lsp#complete
+  augroup END
+endif
 let g:lsp_log_verbose = 1
 let g:lsp_log_file = expand('~/.local/share/vim/vim-lsp.log')
 
