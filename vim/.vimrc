@@ -11,6 +11,7 @@ Plug 'prabirshrestha/async.vim'
 Plug 'prabirshrestha/vim-lsp'
 Plug 'prabirshrestha/asyncomplete.vim'
 Plug 'prabirshrestha/asyncomplete-lsp.vim'
+Plug 'prabirshrestha/asyncomplete-file.vim'
 Plug 'prabirshrestha/asyncomplete-ultisnips.vim'
 
 " List ends here. Plugins become visible to Vim after this call.
@@ -87,6 +88,12 @@ let g:lsp_log_verbose = 1
 let g:lsp_log_file = expand('~/.local/share/vim/vim-lsp.log')
 
 " asyncomplete
+au User asyncomplete_setup call asyncomplete#register_source(asyncomplete#sources#file#get_source_options({
+    \ 'name': 'file',
+    \ 'whitelist': ['*'],
+    \ 'priority': 10,
+    \ 'completor': function('asyncomplete#sources#file#completor')
+    \ }))
 if has('python3')
     call asyncomplete#register_source(asyncomplete#sources#ultisnips#get_source_options({
         \ 'name': 'ultisnips',
