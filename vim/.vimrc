@@ -1,18 +1,18 @@
 " Plugins will be downloaded under the specified directory.
 call plug#begin('~/.config/nvim/plugged')
 
-Plug 'jacoborus/tender.vim'
-Plug '/usr/bin/fzf'
-Plug 'junegunn/fzf.vim'
-Plug 'tyru/caw.vim'
-Plug 'SirVer/ultisnips'
-Plug 'honza/vim-snippets'
 Plug 'prabirshrestha/async.vim'
 Plug 'prabirshrestha/vim-lsp'
 Plug 'prabirshrestha/asyncomplete.vim'
 Plug 'prabirshrestha/asyncomplete-lsp.vim'
 Plug 'prabirshrestha/asyncomplete-file.vim'
 Plug 'prabirshrestha/asyncomplete-ultisnips.vim'
+Plug '/usr/bin/fzf'
+Plug 'junegunn/fzf.vim'
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
+Plug 'jacoborus/tender.vim'
+Plug 'tyru/caw.vim'
 
 " List ends here. Plugins become visible to Vim after this call.
 call plug#end()
