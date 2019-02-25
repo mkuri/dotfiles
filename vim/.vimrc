@@ -18,13 +18,20 @@ Plug 'tyru/caw.vim'
 call plug#end()
 
 " General settings
-set number
 set nobackup
 set noswapfile
 set viminfo+=n~/.local/share/vim/.viminfo
 set clipboard=unnamedplus
 let mapleader="\<Space>"
+
+" Appearance
+set number
 set laststatus=2
+if has('vim_starting')
+  let &t_SI .= "\e[6 q"
+  let &t_EI .= "\e[2 q"
+  let &t_SR .= "\e[4 q"
+endif
 
 " Color
 if (has("termguicolors"))
