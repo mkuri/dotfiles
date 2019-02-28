@@ -67,6 +67,7 @@ alias -g fff='$(fd . $HOME/ --type f | fzf)'
 alias -g fhf='$(fd . $HOME/ --type f --hidden | fzf)'
 alias -g fcf='$(fd . ./ --type f --hidden | fzf)'
 alias -g faf='$(fd . / --type f | fzf)'
+alias venv='source $(fd . $HOME/.local/share/venvs/ --type d --max-depth 1 | fzf)/bin/activate'
 
 # options
 setopt no_beep
