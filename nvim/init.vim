@@ -4,30 +4,26 @@ call plug#begin('~/.config/nvim/plugged')
 Plug 'jacoborus/tender.vim'
 Plug '/usr/bin/fzf'
 Plug 'junegunn/fzf.vim'
-if has('nvim')
-  Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
-else
-  Plug 'Shougo/deoplete.nvim'
-  Plug 'roxma/nvim-yarp'
-  Plug 'roxma/vim-hug-neovim-rpc'
-endif
-Plug 'autozimu/LanguageClient-neovim', {
-   \ 'branch': 'next',
-   \ 'do': 'bash install.sh',
-   \ }
-Plug 'w0rp/ale'
 Plug 'tyru/caw.vim'
 Plug 'SirVer/ultisnips'
 Plug 'honza/vim-snippets'
+Plug 'neoclide/coc.nvim', {'do': { -> coc#util#install()}}
+
 " List ends here. Plugins become visible to Vim after this call.
 call plug#end()
 
 " General settings
-set number
+set hidden
 set nobackup
+set nowritebackup
 set noswapfile
 set clipboard=unnamedplus
-let mapleader="\<Space>"
+
+" Display
+set number
+" set cmdheight=2
+set signcolumn=yes
+au VimEnter * highlight clear SignColumn
 
 " Color
 if (has("termguicolors"))
@@ -51,6 +47,7 @@ set smartcase
 set wrapscan
 
 " Keybind
+let mapleader="\<Space>"
 nnoremap <Leader>f :Files<CR>
 nnoremap <Leader>b :Buffers<CR>
 nnoremap <Leader>; :Commands<CR>
@@ -60,29 +57,14 @@ noremap k gk
 noremap gj j
 noremap gk k
 
+nmap <silent> [c <Plug>(coc-diagnostic-prev)
+nmap <silent> ]c <Plug>(coc-diagnostic-next)
+nmap <silent> gd <Plug>(coc-definition)
+nmap <silent> gy <Plug>(coc-type-definition)
+nmap <silent> gi <Plug>(coc-implementation)
+nmap <silent> gr <Plug>(coc-references)
+
+nmap <leader>rn <Plug>(coc-rename)
+
 " templates
 autocmd BufNewFile requirements.in 0r $HOME/.config/nvim/templates/requirements.in.template
-
-" deoplete
-let g:deoplete#enable_at_startup = 1
-
-" language server protocol
-let g:LanguageClient_serverCommands = {
-  \ 'python': ['pyls'],
-  \ 'c': ['cquery', '--log-file=/tmp/cquery.log'],
-  \ 'cpp': ['cquery', '--log-file=/tmp/cquery.log'],
-  \ }
-let g:LanguageClient_loadSettings = 1
-let g:LanguageClient_settingsPath = '/home/makoto/.config/nvim/settings.json'
-set completefunc=LanguageClient#complete
-
-" python
-let g:python_host_prog = '/usr/bin/python2'
-let g:python3_host_prog = '/usr/bin/python3'
-if exists("$VIRTUAL_ENV")
-  if !empty(glob("$VIRTUAL_ENV/bin/python3"))
-    let g:python3_host_prog = substitute(system("which python"), '\n', '', 'g')
-  else
-    let g:python_host_prog = substitute(system("which python"), '\n', '', 'g')
-  endif
-endif
