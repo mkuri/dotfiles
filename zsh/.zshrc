@@ -25,6 +25,9 @@ zstyle ':vcs_info:*' formats "%F{green}%c%u(%b)%f"
 zstyle ':vcs_info:*' actionformats '[%b|%a]'
 
 setopt prompt_subst
+precmd () {
+  vcs_info
+}
 # export VIRTUAL_ENV_DISABLE_PROMPT=1
 # precmd () {
 #   vcs_info
