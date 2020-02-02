@@ -42,7 +42,10 @@ precmd () {
 PROMPT='[%F{green}%n%F{blue}@%c%{${reset_color}%}]
 %f${vcs_info_msg_0_}$ '
 
-source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# zsh syntax highlighting
+if [ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
+  source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi
 
 # completion
 zstyle ':completion:*' format '%B%F{blue}%d%f%b'
