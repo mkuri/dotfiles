@@ -25,16 +25,18 @@ zstyle ':vcs_info:*' formats "%F{green}%c%u(%b)%f"
 zstyle ':vcs_info:*' actionformats '[%b|%a]'
 
 setopt prompt_subst
-export VIRTUAL_ENV_DISABLE_PROMPT=1
-precmd () {
-  vcs_info
-  PYTHON_VERSION_STRING='py:'$(python --version | awk '{print $2}')
-  PYTHON_VIRTUAL_ENV_STRING=''
-  if [ -n '$VIRTUAL_ENV' ]; then
-    PYTHON_VIRTUAL_ENV_STRING=":`basename \"$VIRTUAL_ENV\"`"
-  fi
-}
-PROMPT='[%F{green}%n%F{blue}@%c%{${reset_color}%}] %F{blue}${PYTHON_VERSION_STRING}${PYTHON_VIRTUAL_ENV_STRING}
+# export VIRTUAL_ENV_DISABLE_PROMPT=1
+# precmd () {
+#   vcs_info
+#   PYTHON_VERSION_STRING='py:'$(python --version | awk '{print $2}')
+#   PYTHON_VIRTUAL_ENV_STRING=''
+#   if [ -n '$VIRTUAL_ENV' ]; then
+#     PYTHON_VIRTUAL_ENV_STRING=":`basename \"$VIRTUAL_ENV\"`"
+#   fi
+# }
+# PROMPT='[%F{green}%n%F{blue}@%c%{${reset_color}%}] %F{blue}${PYTHON_VERSION_STRING}${PYTHON_VIRTUAL_ENV_STRING}
+# %f${vcs_info_msg_0_}$ '
+PROMPT='[%F{green}%n%F{blue}@%c%{${reset_color}%}]
 %f${vcs_info_msg_0_}$ '
 
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
@@ -68,14 +70,18 @@ alias -g fhf='$(fd . $HOME/ --type f --hidden | fzf)'
 alias -g fcf='$(fd . ./ --type f --hidden | fzf)'
 alias -g faf='$(fd . / --type f | fzf)'
 alias venv='source $(fd . $HOME/.local/share/venvs/ --type d --max-depth 1 | fzf)/bin/activate'
+if type nvim > /dev/null 2>&1; then
+  alias vim='nvim'
+elif type nvim.appimage > /dev/null 2>&1; then
+  alias vim='nvim.appimage'
+fi
 
 # options
 setopt no_beep
 setopt share_history
 
 # fzf
-source /usr/share/fzf/key-bindings.zsh
-source /usr/share/fzf/completion.zsh
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 export FZF_DEFAULT_OPTS='--height 40% --reverse --border'
 
 # python virtual env
