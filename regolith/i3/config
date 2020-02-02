@@ -45,6 +45,8 @@ bindsym $mod+Return exec $terminal_path
 
 # start a web browser
 bindsym $mod+Shift+Return exec /usr/bin/sensible-browser
+bindsym $mod+g exec /usr/bin/chromium-browser
+bindsym $mod+Shift+g exec /usr/bin/chromium-browser --incognito
 
 # kill focused window
 bindsym $mod+Shift+q kill
