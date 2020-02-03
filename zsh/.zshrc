@@ -78,8 +78,10 @@ alias -g faf='$(fd . / --type f | fzf)'
 alias venv='source $(fd . $HOME/.local/share/venvs/ --type d --max-depth 1 | fzf)/bin/activate'
 if type nvim > /dev/null 2>&1; then
   alias vim='nvim'
+  export EDITOR=nvim
 elif type nvim.appimage > /dev/null 2>&1; then
   alias vim='nvim.appimage'
+  export EDITOR=nvim.appimage
 fi
 
 # options
