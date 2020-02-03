@@ -1,13 +1,13 @@
 " Plugins will be downloaded under the specified directory.
 call plug#begin('~/.config/nvim/plugged')
 
-Plug 'jacoborus/tender.vim'
+Plug 'arcticicestudio/nord-vim'
 Plug '/usr/bin/fzf'
 Plug 'junegunn/fzf.vim'
 Plug 'tyru/caw.vim'
-Plug 'SirVer/ultisnips'
-Plug 'honza/vim-snippets'
-Plug 'neoclide/coc.nvim', {'do': { -> coc#util#install()}}
+" Plug 'SirVer/ultisnips'
+" Plug 'honza/vim-snippets'
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
 " List ends here. Plugins become visible to Vim after this call.
 call plug#end()
@@ -30,7 +30,7 @@ if (has("termguicolors"))
   set termguicolors
 endif
 syntax enable
-colorscheme tender
+colorscheme nord
 
 " Indent
 set tabstop=2
