@@ -2,7 +2,8 @@
 #include "/etc/regolith/styles/cahuella/color"
 
 ! -- Styles - Fonts
-#include "/etc/regolith/styles/cahuella/typeface"
+! #include "/etc/regolith/styles/cahuella/typeface"
+#include "/home/makoto/.config/regolith/styles/defines/typeface"
 
 ! -- Styles - Theme
 #include "/etc/regolith/styles/cahuella/theme"
