@@ -2,7 +2,11 @@
 call plug#begin('~/.config/nvim/plugged')
 
 Plug 'arcticicestudio/nord-vim'
-Plug '/usr/bin/fzf'
+if isdirectory(expand('~/.fzf'))
+  Plug '~/.fzf'
+elseif isdirectory('/usr/bin/fzf')
+  Plug '/usr/bin/fzf'
+endif
 Plug 'junegunn/fzf.vim'
 Plug 'tyru/caw.vim'
 " Plug 'SirVer/ultisnips'
