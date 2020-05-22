@@ -1,7 +1,6 @@
 " Plugins will be downloaded under the specified directory.
 call plug#begin('~/.config/nvim/plugged')
 
-Plug 'arcticicestudio/nord-vim'
 if isdirectory(expand('~/.fzf'))
   Plug '~/.fzf'
 elseif isdirectory('/usr/bin/fzf')
@@ -12,6 +11,7 @@ Plug 'tyru/caw.vim'
 " Plug 'SirVer/ultisnips'
 " Plug 'honza/vim-snippets'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'cocopon/iceberg.vim'
 
 " List ends here. Plugins become visible to Vim after this call.
 call plug#end()
@@ -30,11 +30,13 @@ set signcolumn=yes
 au VimEnter * highlight clear SignColumn
 
 " Color
-if (has("termguicolors"))
-  set termguicolors
-endif
+" if (has("termguicolors"))
+"   set termguicolors
+" endif
 syntax enable
-colorscheme nord
+" colorscheme iceberg
+" highlight Normal guibg=none
+" highlight Nontext guibg=none
 
 " Indent
 set tabstop=2
