@@ -16,16 +16,13 @@ PS1='[\u@\h \w]$(__git_ps1)\n\$ '
 
 # env
 export PATH=$PATH:$HOME/.local/bin
-export XDG_CONFIG_HOME=$HOME/.config
-export XDG_CACHE_HOME=$HOME/.cache
-export XDG_DATA_HOME=$HOME/.local/share
 if type nvim > /dev/null 2>&1; then
     export EDITOR=nvim
 fi
 
 # alias
 alias ls='ls -la --color=auto'
-alias j='cd $(fd . --type d --hidden | fzf)'
+alias j='cd $(fd --type d --hidden . . ~ | fzf)'
 
 # history
 export HISTSIZE=10000
