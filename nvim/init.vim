@@ -12,6 +12,7 @@ Plug 'tyru/caw.vim'
 " Plug 'honza/vim-snippets'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'cocopon/iceberg.vim'
+Plug 'tpope/vim-fugitive'
 
 " List ends here. Plugins become visible to Vim after this call.
 call plug#end()
@@ -63,6 +64,12 @@ noremap j gj
 noremap k gk
 noremap gj j
 noremap gk k
+
+nnoremap <Leader>gs :Git<CR>
+nnoremap <Leader>ga :Gwrite<CR>
+nnoremap <Leader>gc :Git commit<CR>
+nnoremap <Leader>gb :Gblame<CR>
+nnoremap <Leader>gd :Gdiffsplit<CR>
 
 nmap <silent> [c <Plug>(coc-diagnostic-prev)
 nmap <silent> ]c <Plug>(coc-diagnostic-next)
