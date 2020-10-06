@@ -1,0 +1,16 @@
+{
+    "vim.hlsearch": true,
+    "vim.leader": "<space>",
+    "vim.useSystemClipboard": true,
+    "editor.tabSize": 2,
+    "C_Cpp.clang_format_fallbackStyle": "Google",
+    "window.zoomLevel": -1,
+    "vim.insertModeKeyBindings": [
+        {
+            "before": ["<C-m>"],
+            "after": ["<Enter>"]
+        }
+    ],
+    // "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "modifications",
+}
