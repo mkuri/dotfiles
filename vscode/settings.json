@@ -13,4 +13,8 @@
     ],
     // "editor.formatOnSave": true,
     "editor.formatOnSaveMode": "modifications",
+    "vim.autoSwitchInputMethod.enable": true,
+    "vim.autoSwitchInputMethod.obtainIMCmd": "/usr/bin/fcitx-remote",
+    "vim.autoSwitchInputMethod.switchIMCmd": "/usr/bin/fcitx-remote -s {im}",
+    "vim.autoSwitchInputMethod.defaultIM": "fcitx-keyboard-us",
 }
