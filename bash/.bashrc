@@ -26,7 +26,14 @@ alias j='cd $(fd --type d --hidden . . ~ | fzf)'
 
 # history
 export HISTSIZE=10000
-export HISTCONTROL=ignooredups
+export HISTCONTROL=erasedups
+shopt -u histappend
+share_history(){
+  history -a
+  history -c
+  history -r
+}
+PROMPT_COMMAND='share_history'
 
 # fzf
 if [ -e /usr/share/fzf/completion.bash ]; then
@@ -35,3 +42,6 @@ fi
 if [ -e /usr/share/fzf/key-bindings.bash ]; then
     source /usr/share/fzf/key-bindings.bash
 fi
+
+# docker
+export DOCKER_BUILDKIT=1
