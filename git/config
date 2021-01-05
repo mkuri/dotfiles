@@ -1,3 +1,5 @@
 [user]
 	name = Makoto Kurihara
 	email = mkuri8m@gmail.com
+[init]
+	defaultBranch = main
