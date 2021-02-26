@@ -12,7 +12,6 @@ fi
 if [ -e /usr/share/git/completion/git-prompt.sh ]; then
     source /usr/share/git/completion/git-prompt.sh
 fi
-PS1='[\u@\h \w]$(__git_ps1)\n\$ '
 PS1='[\u \[\e[34m\]\w\[\e[0m\]]$(__git_ps1)\n\$ '
 
 # env
@@ -42,6 +41,11 @@ if [ -e /usr/share/fzf/completion.bash ]; then
 fi
 if [ -e /usr/share/fzf/key-bindings.bash ]; then
     source /usr/share/fzf/key-bindings.bash
+fi
+
+# nvim
+if [ -e $HOME/.local/bin/nvim.appimage ]; then
+    alias nvim=nvim.appimage
 fi
 
 # docker
