@@ -3,3 +3,8 @@
 	email = mkuri8m@gmail.com
 [init]
 	defaultBranch = main
+[core]
+	pager = delta
+	editor = nvim.appimage
+[delta]
+	side-by-side = true
