@@ -19,6 +19,9 @@ export PATH=$PATH:$HOME/.local/bin
 if type nvim > /dev/null 2>&1; then
     export EDITOR=nvim
 fi
+if type nvim.appimage > /dev/null 2>&1; then
+    export EDITOR=nvim.appimage
+fi
 
 # alias
 alias ls='ls -la --color=auto'
