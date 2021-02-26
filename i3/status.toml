@@ -1,0 +1,26 @@
+[[block]]
+block = "cpu"
+
+[[block]]
+block = "temperature"
+collapsed = false
+format = "{average} avg, {max} max"
+
+[[block]]
+block = "memory"
+format_mem = "{Mup}%"
+
+[[block]]
+block = "nvidia_gpu"
+
+[[block]]
+block = "disk_space"
+
+[[block]]
+block = "networkmanager"
+
+[[block]]
+block = "sound"
+
+[[block]]
+block = "time"
