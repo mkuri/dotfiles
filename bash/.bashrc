@@ -26,6 +26,7 @@ fi
 # alias
 alias ls='ls -la --color=auto'
 alias j='cd $(fd --type d --hidden . . ~ | fzf)'
+alias lg='lazygit'
 
 # history
 export HISTSIZE=10000
