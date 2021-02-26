@@ -6,6 +6,7 @@ if isdirectory(expand('~/.fzf'))
 elseif isdirectory('/usr/bin/fzf')
   Plug '/usr/bin/fzf'
 endif
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 Plug 'tyru/caw.vim'
 " Plug 'SirVer/ultisnips'
@@ -82,3 +83,6 @@ nmap <leader>rn <Plug>(coc-rename)
 
 " templates
 autocmd BufNewFile requirements.in 0r $HOME/.config/nvim/templates/requirements.in.template
+
+" fzf
+let g:fzf_layout = { 'down': '40%' }
