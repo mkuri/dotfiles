@@ -12,7 +12,7 @@ fi
 if [ -e /usr/share/git/completion/git-prompt.sh ]; then
     source /usr/share/git/completion/git-prompt.sh
 fi
-PS1='[\u \[\e[34m\]\w\[\e[0m\]]$(__git_ps1)\n\$ '
+PS1='[\u \[\e[34m\]\w\[\e[0m\]]$(__git_ps1)\n\[\e[33m\]\$\[\e[0m\] '
 
 # env
 export PATH=$PATH:$HOME/.local/bin
