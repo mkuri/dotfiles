@@ -30,11 +30,11 @@ set signcolumn=yes
 au VimEnter * highlight clear SignColumn
 
 " Color
-" if (has("termguicolors"))
-"   set termguicolors
-" endif
+if (has("termguicolors"))
+  set termguicolors
+endif
 syntax enable
-" colorscheme iceberg
+colorscheme iceberg
 " highlight Normal guibg=none
 " highlight Nontext guibg=none
 
