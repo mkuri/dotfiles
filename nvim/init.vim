@@ -1,11 +1,6 @@
 " Plugins will be downloaded under the specified directory.
 call plug#begin('~/.config/nvim/plugged')
 
-if isdirectory(expand('~/.fzf'))
-  Plug '~/.fzf'
-elseif isdirectory('/usr/bin/fzf')
-  Plug '/usr/bin/fzf'
-endif
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 Plug 'tyru/caw.vim'
