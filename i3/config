@@ -59,6 +59,8 @@ bindsym $mod+d exec --no-startup-id dmenu_run
 # start browser
 bindsym $mod+g exec google-chrome-stable
 bindsym $mod+Shift+g exec google-chrome-stable --incognito
+bindsym $mod+b exec brave
+bindsym $mod+Shift+b exec brave --incognito
 
 # screenshot
 bindsym Print exec maim -s > ~/docs/screenshots/$(date +%Y%m%d-%H%M%S).png
