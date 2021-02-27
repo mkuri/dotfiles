@@ -6,7 +6,8 @@ Plug 'junegunn/fzf.vim'
 Plug 'tyru/caw.vim'
 " Plug 'SirVer/ultisnips'
 " Plug 'honza/vim-snippets'
-Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'prabirshrestha/vim-lsp'
+Plug 'mattn/vim-lsp-settings'
 Plug 'cocopon/iceberg.vim'
 Plug 'tpope/vim-fugitive'
 
@@ -67,14 +68,16 @@ nnoremap <Leader>gc :Git commit<CR>
 nnoremap <Leader>gb :Gblame<CR>
 nnoremap <Leader>gd :Gdiffsplit<CR>
 
-nmap <silent> [c <Plug>(coc-diagnostic-prev)
-nmap <silent> ]c <Plug>(coc-diagnostic-next)
-nmap <silent> gd <Plug>(coc-definition)
-nmap <silent> gy <Plug>(coc-type-definition)
-nmap <silent> gi <Plug>(coc-implementation)
-nmap <silent> gr <Plug>(coc-references)
-
-nmap <leader>rn <Plug>(coc-rename)
+nmap <silent> gd <Plug>(lsp-definition)
+nmap <silent> gr <Plug>(lsp-references)
+nmap <silent> gi <Plug>(lsp-implementation)
+nmap <silent> gt <Plug>(lsp-type-definition)
+nmap <silent> gs <Plug>(lsp-document-symbol-search)
+nmap <silent> gS <Plug>(lsp-workspace-symbol-search)
+nmap <leader>rn <Plug>(lsp-rename)
+nmap <silent> [d <Plug>(lsp-previous-diagnostic)
+nmap <silent> ]d <Plug>(lsp-next-diagnostic)
+nmap <silent> gh <Plug>(lsp-hover)
 
 " templates
 autocmd BufNewFile requirements.in 0r $HOME/.config/nvim/templates/requirements.in.template
