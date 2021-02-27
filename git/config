@@ -8,3 +8,5 @@
 	editor = nvim.appimage
 [delta]
 	side-by-side = true
+[pull]
+  ff = only
