@@ -8,6 +8,8 @@ Plug 'tyru/caw.vim'
 " Plug 'honza/vim-snippets'
 Plug 'prabirshrestha/vim-lsp'
 Plug 'mattn/vim-lsp-settings'
+Plug 'prabirshrestha/asyncomplete.vim'
+Plug 'prabirshrestha/asyncomplete-lsp.vim'
 Plug 'cocopon/iceberg.vim'
 Plug 'tpope/vim-fugitive'
 
