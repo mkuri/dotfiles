@@ -42,8 +42,6 @@ export GTK_IM_MODULE=fcitx
 export QT_IM_MODULE=fcitx
 export XMODIFIERS=@im=fcitx
 
-feh --bg-scale ~/.local/share/wallpaper/dedsec.jpg &
-picom --config ~/.config/picom/picom.conf &
 devmon &
 fcitx &
 exec i3
