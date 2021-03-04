@@ -4,7 +4,7 @@ block = "cpu"
 [[block]]
 block = "temperature"
 collapsed = false
-format = "{average} avg, {max} max"
+format = "Avg {average}°C, Max {max}°C"
 
 [[block]]
 block = "memory"
