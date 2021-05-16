@@ -8,7 +8,7 @@ format = "Avg {average}°C, Max {max}°C"
 
 [[block]]
 block = "memory"
-format_mem = "{Mup}%"
+format_mem = "{mem_used}/{mem_total}({mem_used_percents})"
 
 [[block]]
 block = "disk_space"
