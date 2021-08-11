@@ -1,0 +1,50 @@
+#
+# ~/.bashrc
+#
+
+# If not running interactively, don't do anything
+[[ $- != *i* ]] && return
+
+# prompt
+PS1='[\u \[\e[34m\]\w\[\e[0m\]]$(__git_ps1)\n\[\e[33m\]\$\[\e[0m\] '
+
+# env
+export PATH=$PATH:$HOME/.local/bin
+if type nvim > /dev/null 2>&1; then
+    export EDITOR=nvim
+fi
+
+# alias
+alias ls='ls -la --color=auto'
+alias j='cd $(fd --type d --hidden . . ~ | fzf)'
+
+# history
+export HISTSIZE=10000
+export HISTCONTROL=erasedups
+shopt -u histappend
+share_history(){
+  history -a
+  history -c
+  history -r
+}
+PROMPT_COMMAND='share_history'
+
+# bash-completion
+if ! shopt -oq posix; then
+  if [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+  elif [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+  fi
+fi
+
+# fzf
+if [ -f "${XDG_CONFIG_HOME:-$HOME/.config}"/fzf/fzf.bash ]; then
+  source "${XDG_CONFIG_HOME:-$HOME/.config}"/fzf/fzf.bash
+fi
+
+# docker
+export DOCKER_BUILDKIT=1
+
+# rust
+source $HOME/.cargo/env
