@@ -10,10 +10,10 @@ define_multipurpose_modmap({
     Key.RIGHT_ALT: [Key.HENKAN, Key.RIGHT_ALT]
 })
 
-define_keymap(re.compile("Google-chrome|Brave"), {
+define_keymap(re.compile("Google-chrome|Brave-browser"), {
     K("C-n"): K("Down"),
     K("C-p"): K("Up"),
     K("C-m"): K("Enter"),
     K("C-h"): K("Backspace"),
     K("C-Shift-p"): K("C-p"),
-})
+}, "Browser")
