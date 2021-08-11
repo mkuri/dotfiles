@@ -5,7 +5,7 @@
 	defaultBranch = main
 [core]
 	pager = delta
-	editor = nvim.appimage
+	editor = nvim
 [delta]
 	side-by-side = true
 [pull]
