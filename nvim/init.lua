@@ -58,8 +58,11 @@ require('telescope').setup{
       },
     },
     layout_config = {
-      prompt_position = 'bottom'
-    }
+      prompt_position = 'bottom',
+    },
+    path_display = {
+      'shorten',
+    },
   }
 }
 
