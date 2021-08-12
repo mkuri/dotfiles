@@ -43,12 +43,17 @@ lsp.clangd.setup{
 }
 
 ---------- telescope -------------------- 
+local actions = require('telescope.actions')
 require('telescope').setup{
   defaults = {
     file_ignore_patterns = {
       '%.png', '%.jpg',
       '%.mp4', '%.mp3',
       '%.tgz', '%.tar.gz', '%.zst', '%.zip',
+    mappings = {
+      i = {
+        ["<esc>"] = actions.close
+      },
     },
     layout_config = {
       prompt_position = 'bottom'
