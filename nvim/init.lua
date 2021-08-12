@@ -50,6 +50,8 @@ require('telescope').setup{
       '%.png', '%.jpg',
       '%.mp4', '%.mp3',
       '%.tgz', '%.tar.gz', '%.zst', '%.zip',
+      'install', 'build', 'log',
+    },
     mappings = {
       i = {
         ["<esc>"] = actions.close
