@@ -42,7 +42,10 @@ local on_attach = function(client, bufnr)
 end
 
 lsp.clangd.setup{
-  on_attach = on_attach
+  on_attach = on_attach,
+  cmd = {"clangd-12", "--background-index"},
+}
+
 ---------- completion -------------------- 
 vim.opt.completeopt = 'menuone,noselect'
 require'compe'.setup{
