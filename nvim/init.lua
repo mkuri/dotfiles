@@ -25,6 +25,7 @@ vim.cmd 'colorscheme iceberg'
 ---------- lsp -------------------- 
 local lsp = require('lspconfig')
 local on_attach = function(client, bufnr)
+  print("LSP started.")
   local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
   local function buf_set_option(...) vim.api.nvim_buf_set_option(bufnr, ...) end
 
