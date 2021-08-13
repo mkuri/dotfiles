@@ -46,6 +46,9 @@ lsp.clangd.setup{
   on_attach = on_attach,
   cmd = {"clangd-12", "--background-index"},
 }
+lsp.pyright.setup{
+  on_attach = on_attach
+}
 
 ---------- completion -------------------- 
 vim.opt.completeopt = 'menuone,noselect'
