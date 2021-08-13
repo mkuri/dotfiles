@@ -48,3 +48,12 @@ export DOCKER_BUILDKIT=1
 
 # rust
 source $HOME/.cargo/env
+
+# ros2
+source /opt/ros/galactic/setup.bash
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+export LD_LIBRARY_PATH="/usr/local/libtorch/lib:$LD_LIBRARY_PATH"
+
+# cuda
+export PATH="/usr/local/cuda/bin:$PATH"
+export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
