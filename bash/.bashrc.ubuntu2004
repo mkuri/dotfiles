@@ -49,6 +49,7 @@ fi
 
 # docker
 export DOCKER_BUILDKIT=1
+export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/docker.sock
 
 # rust
 source $HOME/.cargo/env
