@@ -9,6 +9,9 @@
 PS1='[\u \[\e[34m\]\w\[\e[0m\]]$(__git_ps1)\n\[\e[33m\]\$\[\e[0m\] '
 
 # env
+export XDG_CONFIG_HOME=$HOME/.config
+export XDG_CACHE_HOME=$HOME/.cache
+export XDG_DATA_HOME=$HOME/.local/share
 export PATH=$PATH:$HOME/.local/bin
 if type nvim > /dev/null 2>&1; then
     export EDITOR=nvim
