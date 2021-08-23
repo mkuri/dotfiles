@@ -10,6 +10,7 @@ require('packer').startup(function()
   }
   use 'b3nj5m1n/kommentary'
   use 'cocopon/iceberg.vim'
+  use 'ntpeters/vim-better-whitespace'
 end)
 
 ---------- options -------------------- 
