@@ -57,6 +57,8 @@ require'compe'.setup{
   autocomplete = true,
   source = {
     path = true,
+    buffer = true,
+    spell = true,
     nvim_lsp = true,
   },
 }
