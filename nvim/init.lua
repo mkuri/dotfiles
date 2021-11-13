@@ -15,6 +15,10 @@ require('packer').startup(function()
     'lewis6991/gitsigns.nvim',
     requires = {'nvim-lua/plenary.nvim'}
   }
+  use {
+    'lambdalisue/fern.vim',
+    requires = {'antoinemadec/FixCursorHold.nvim'}
+  }
 end)
 
 ---------- options --------------------
@@ -93,10 +97,10 @@ require('telescope').setup{
   }
 }
 
----------- gitsigns -------------------- 
+---------- gitsigns --------------------
 require('gitsigns').setup()
 
----------- mappings -------------------- 
+---------- mappings --------------------
 local function map(mode, lhs, rhs, opts)
   local options = {noremap = true}
   if opts then options = vim.tbl_extend('force', options, opts) end
@@ -106,3 +110,4 @@ map('n', '<space>f', '<cmd>Telescope find_files<cr>')
 map('n', '<space>g', '<cmd>Telescope live_grep<cr>')
 map('n', '<space>b', '<cmd>Telescope buffers<cr>')
 map('n', '<esc><esc>', '<cmd>nohlsearch<cr>')
+map('n', '<space>t', '<cmd>Fern . -drawer -width=60 -toggle<cr>')
