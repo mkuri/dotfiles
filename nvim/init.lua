@@ -1,4 +1,4 @@
----------- plugins -------------------- 
+---------- plugins --------------------
 vim.cmd [[packadd packer.nvim]]
 require('packer').startup(function()
   use 'wbthomason/packer.nvim'
@@ -13,7 +13,7 @@ require('packer').startup(function()
   use 'ntpeters/vim-better-whitespace'
 end)
 
----------- options -------------------- 
+---------- options --------------------
 vim.opt.number = true
 vim.opt.tabstop = 2
 vim.opt.shiftwidth = 2
@@ -21,10 +21,10 @@ vim.opt.expandtab = true
 vim.opt.smartindent = true
 vim.opt.clipboard = "unnamedplus"
 
----------- color -------------------- 
+---------- color --------------------
 vim.cmd 'colorscheme iceberg'
 
----------- lsp -------------------- 
+---------- lsp --------------------
 local lsp = require('lspconfig')
 local on_attach = function(client, bufnr)
   print("LSP started.")
@@ -52,7 +52,7 @@ lsp.pyright.setup{
   on_attach = on_attach
 }
 
----------- completion -------------------- 
+---------- completion --------------------
 vim.opt.completeopt = 'menuone,noselect'
 require'compe'.setup{
   enabled = true,
@@ -65,7 +65,7 @@ require'compe'.setup{
   },
 }
 
----------- telescope -------------------- 
+---------- telescope --------------------
 local actions = require('telescope.actions')
 require('telescope').setup{
   defaults = {
@@ -89,7 +89,7 @@ require('telescope').setup{
   }
 }
 
----------- mappings -------------------- 
+---------- mappings --------------------
 local function map(mode, lhs, rhs, opts)
   local options = {noremap = true}
   if opts then options = vim.tbl_extend('force', options, opts) end
