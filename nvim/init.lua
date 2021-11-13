@@ -11,6 +11,10 @@ require('packer').startup(function()
   use 'b3nj5m1n/kommentary'
   use 'cocopon/iceberg.vim'
   use 'ntpeters/vim-better-whitespace'
+  use {
+    'lewis6991/gitsigns.nvim',
+    requires = {'nvim-lua/plenary.nvim'}
+  }
 end)
 
 ---------- options --------------------
@@ -89,7 +93,10 @@ require('telescope').setup{
   }
 }
 
----------- mappings --------------------
+---------- gitsigns -------------------- 
+require('gitsigns').setup()
+
+---------- mappings -------------------- 
 local function map(mode, lhs, rhs, opts)
   local options = {noremap = true}
   if opts then options = vim.tbl_extend('force', options, opts) end
