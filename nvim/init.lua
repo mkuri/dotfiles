@@ -93,6 +93,7 @@ require('telescope').setup{
     },
     path_display = {
       'shorten',
+      shorten = 3,
     },
   }
 }
