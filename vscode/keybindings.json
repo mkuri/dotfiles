@@ -1,0 +1,14 @@
+// Place your key bindings in this file to override the defaults
+[
+    {
+        "key": "ctrl+m",
+        "command": "list.select",
+        "when": "explorerViewletFocus && listFocus && explorerViewletVisible && !inputFocus"
+    },
+    {
+        "key": "ctrl+m",
+        "command": "type",
+        "args": {"text": "\n"},
+        "when": "editorTextFocus && neovim.ctrlKeysInsert && !neovim.recording && neovim.mode == 'insert'"
+    }
+]

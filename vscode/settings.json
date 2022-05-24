@@ -1,0 +1,5 @@
+{
+    "workbench.colorTheme": "Default Dark+",
+    "vscode-neovim.neovimExecutablePaths.linux": "/home/makoto/.local/bin/nvim",
+    "editor.fontSize": 11
+}
