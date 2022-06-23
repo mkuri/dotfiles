@@ -16,8 +16,10 @@ require('packer').startup(function()
     requires = {'nvim-lua/plenary.nvim'}
   }
   use {
-    'lambdalisue/fern.vim',
-    requires = {'antoinemadec/FixCursorHold.nvim'}
+    'kyazdani42/nvim-tree.lua',
+    requires = {
+      'kyazdani42/nvim-web-devicons',
+    },
   }
 end)
 
@@ -101,6 +103,9 @@ require('telescope').setup{
 ---------- gitsigns --------------------
 require('gitsigns').setup()
 
+---------- nvim-tree --------------------
+require('nvim-tree').setup()
+
 ---------- mappings --------------------
 local function map(mode, lhs, rhs, opts)
   local options = {noremap = true}
@@ -111,4 +116,4 @@ map('n', '<space>f', '<cmd>Telescope find_files<cr>')
 map('n', '<space>g', '<cmd>Telescope live_grep<cr>')
 map('n', '<space>b', '<cmd>Telescope buffers<cr>')
 map('n', '<esc><esc>', '<cmd>nohlsearch<cr>')
-map('n', '<space>t', '<cmd>Fern . -drawer -width=60 -toggle<cr>')
+map('n', '<space>t', '<cmd>NvimTreeFindFile<cr>')
