@@ -15,6 +15,7 @@ require('packer').startup(function()
     'lewis6991/gitsigns.nvim',
     requires = {'nvim-lua/plenary.nvim'}
   }
+  use 'APZelos/blamer.nvim'
   use {
     'kyazdani42/nvim-tree.lua',
     requires = {
@@ -117,3 +118,4 @@ map('n', '<space>g', '<cmd>Telescope live_grep<cr>')
 map('n', '<space>b', '<cmd>Telescope buffers<cr>')
 map('n', '<esc><esc>', '<cmd>nohlsearch<cr>')
 map('n', '<space>t', '<cmd>NvimTreeFindFile<cr>')
+map('n', '<space>gb', '<cmd>BlamerToggle<cr>')
