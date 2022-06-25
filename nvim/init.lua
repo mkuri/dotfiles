@@ -22,6 +22,7 @@ require('packer').startup(function()
       'kyazdani42/nvim-web-devicons',
     },
   }
+  use "folke/which-key.nvim"
 end)
 
 ---------- options --------------------
@@ -106,6 +107,9 @@ require('gitsigns').setup()
 
 ---------- nvim-tree --------------------
 require('nvim-tree').setup()
+
+---------- which-key --------------------
+require('which-key').setup()
 
 ---------- mappings --------------------
 local function map(mode, lhs, rhs, opts)
