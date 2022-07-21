@@ -85,6 +85,7 @@ require('telescope').setup{
       '%.png', '%.jpg',
       '%.mp4', '%.mp3',
       '%.tgz', '%.tar.gz', '%.zst', '%.zip',
+      '%.dae',
       'install', 'build', 'log',
     },
     mappings = {
