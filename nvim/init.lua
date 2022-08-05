@@ -21,6 +21,7 @@ require('packer').startup(function()
       'kyazdani42/nvim-web-devicons',
     },
   }
+  use 'ggandor/lightspeed.nvim'
   use 'numToStr/Comment.nvim'
   use 'ntpeters/vim-better-whitespace'
   use 'hoshinotsuyoshi/vim-to-github'
