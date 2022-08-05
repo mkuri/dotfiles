@@ -1,28 +1,29 @@
 ---------- plugins --------------------
-vim.cmd [[packadd packer.nvim]]
 require('packer').startup(function()
   use 'wbthomason/packer.nvim'
   use 'neovim/nvim-lspconfig'
-  use 'hrsh7th/nvim-compe'
-  use {
-    'nvim-telescope/telescope.nvim',
-    requires = {{'nvim-lua/popup.nvim'}, {'nvim-lua/plenary.nvim'}}
-  }
-  use 'b3nj5m1n/kommentary'
-  use 'cocopon/iceberg.vim'
-  use 'ntpeters/vim-better-whitespace'
+  use 'williamboman/mason.nvim'
+  use 'williamboman/mason-lspconfig.nvim'
+  use 'mfussenegger/nvim-dap'
+  use 'jose-elias-alvarez/null-ls.nvim'
+  use 'hrsh7th/nvim-cmp'
+  use 'hrsh7th/cmp-nvim-lsp'
+  use 'hrsh7th/cmp-buffer'
+  use 'hrsh7th/cmp-path'
   use {
     'lewis6991/gitsigns.nvim',
-    requires = {'nvim-lua/plenary.nvim'}
+    tag = 'release'
   }
-  use 'APZelos/blamer.nvim'
+  use 'ibhagwan/fzf-lua'
   use {
     'kyazdani42/nvim-tree.lua',
     requires = {
       'kyazdani42/nvim-web-devicons',
     },
   }
-  use "folke/which-key.nvim"
+  use 'numToStr/Comment.nvim'
+  use 'ntpeters/vim-better-whitespace'
+  use 'cocopon/iceberg.vim'
 end)
 
 ---------- options --------------------
@@ -36,92 +37,57 @@ vim.opt.clipboard = "unnamedplus"
 ---------- color --------------------
 vim.cmd 'colorscheme iceberg'
 
+---------- keymaps --------------------
+vim.keymap.set('n', '<space>f', '<cmd>FzfLua files<CR>')
+vim.keymap.set('n', '<space>b', '<cmd>FzfLua buffers<CR>')
+vim.keymap.set('n', '<space>g', '<cmd>FzfLua live_grep<CR>')
+vim.keymap.set('n', '<space><space>', '<cmd>FzfLua builtin<CR>')
+vim.keymap.set('n', '<space>ss', '<cmd>FzfLua lsp_document_symbols<CR>')
+vim.keymap.set('n', '<space>sd', '<cmd>FzfLua diagnostics_document<CR>')
+vim.keymap.set('n', '<space>sc', '<cmd>FzfLua git_bcommits<CR>')
+vim.keymap.set('n', '<space>sC', '<cmd>FzfLua git_commits<CR>')
+vim.keymap.set('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>')
+vim.keymap.set('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>')
+vim.keymap.set('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<CR>')
+vim.keymap.set('n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>')
+vim.keymap.set('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>')
+vim.keymap.set('n', 'gt', '<cmd>lua vim.lsp.buf.type_definition()<CR>')
+vim.keymap.set('n', 'rn', '<cmd>lua vim.lsp.buf.rename()<CR>')
+vim.keymap.set('n', 'ca', '<cmd>lua vim.lsp.buf.code_action()<CR>')
+vim.keymap.set('n', '<space>tt', '<cmd>NvimTreeToggle<CR>')
+vim.keymap.set('n', '<space>to', '<cmd>NvimTreeFocus<CR>')
+vim.keymap.set('n', '<space>tf', '<cmd>NvimTreeFindFile<CR>')
+vim.keymap.set('n', '<esc><esc>', '<cmd>nohlsearch<CR>')
+
 ---------- lsp --------------------
-local lsp = require('lspconfig')
-local on_attach = function(client, bufnr)
-  print("LSP started.")
-  local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
-  local function buf_set_option(...) vim.api.nvim_buf_set_option(bufnr, ...) end
-
-  buf_set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
-
-  local opts = {noremap = true, silent = true}
-  buf_set_keymap('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<cr>', opts)
-  buf_set_keymap('n', 'gr', '<cmd>lua vim.lsp.buf.references()<cr>', opts)
-  buf_set_keymap('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<cr>', opts)
-  buf_set_keymap('n', '[d', '<cmd>lua vim.lsp.diagnostic.goto_prev()<cr>', opts)
-  buf_set_keymap('n', ']d', '<cmd>lua vim.lsp.diagnostic.goto_next()<cr>', opts)
-  buf_set_keymap('n', '<space>rn', '<cmd>lua vim.lsp.buf.rename()<cr>', opts)
-  buf_set_keymap('n', '<space>a', '<cmd>lua vim.lsp.buf.code_action()<cr>', opts)
-  buf_set_keymap('n', '<space>e', '<cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<cr>', opts)
-end
-
-lsp.clangd.setup{
-  on_attach = on_attach,
-  cmd = {"clangd-12", "--background-index"},
-}
-lsp.pyright.setup{
-  on_attach = on_attach
-}
+require('mason').setup()
+require('mason-lspconfig').setup_handlers({
+  function(server)
+    local opt = {
+      on_attach = function(client, bufnr)
+        print("LSP started.")
+      end
+    }
+    require('lspconfig')[server].setup(opt)
+  end
+})
 
 ---------- completion --------------------
-vim.opt.completeopt = 'menuone,noselect'
-require'compe'.setup{
-  enabled = true,
-  autocomplete = true,
-  source = {
-    path = true,
-    buffer = true,
-    spell = true,
-    nvim_lsp = true,
-  },
-}
-
----------- telescope --------------------
-local actions = require('telescope.actions')
-require('telescope').setup{
-  defaults = {
-    file_ignore_patterns = {
-      '%.png', '%.jpg',
-      '%.mp4', '%.mp3',
-      '%.tgz', '%.tar.gz', '%.zst', '%.zip',
-      'install', 'build', 'log',
-    },
-    mappings = {
-      i = {
-        ["<esc>"] = actions.close
-      },
-    },
-    layout_config = {
-      prompt_position = 'bottom',
-    },
-    path_display = {
-      'shorten',
-      shorten = 3,
-    },
+require('cmp').setup({
+  sources = {
+    {name = 'nvim_lsp'},
+    {name = 'buffer'},
+    {name = 'path'},
   }
-}
+})
 
 ---------- gitsigns --------------------
-require('gitsigns').setup()
+require('gitsigns').setup({
+  current_line_blame = true,
+})
 
 ---------- nvim-tree --------------------
 require('nvim-tree').setup()
 
----------- which-key --------------------
-require('which-key').setup()
-
----------- mappings --------------------
-local function map(mode, lhs, rhs, opts)
-  local options = {noremap = true}
-  if opts then options = vim.tbl_extend('force', options, opts) end
-  vim.api.nvim_set_keymap(mode, lhs, rhs, options)
-end
-map('n', '<space>f', '<cmd>Telescope find_files<cr>')
-map('n', '<space>b', '<cmd>Telescope buffers<cr>')
-map('n', '<space>sg', '<cmd>Telescope live_grep<cr>')
-map('n', '<esc><esc>', '<cmd>nohlsearch<cr>')
-map('n', '<space>tt', '<cmd>NvimTreeToggle<cr>')
-map('n', '<space>to', '<cmd>NvimTreeFocus<cr>')
-map('n', '<space>tf', '<cmd>NvimTreeFindFile<cr>')
-map('n', '<space>gb', '<cmd>BlamerToggle<cr>')
+---------- comment --------------------
+require('Comment').setup()
