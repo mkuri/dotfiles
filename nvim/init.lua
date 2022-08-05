@@ -5,6 +5,7 @@ require('packer').startup(function()
   use 'williamboman/mason.nvim'
   use 'williamboman/mason-lspconfig.nvim'
   use 'mfussenegger/nvim-dap'
+  use 'rcarriga/nvim-dap-ui'
   use 'jose-elias-alvarez/null-ls.nvim'
   use 'hrsh7th/nvim-cmp'
   use 'hrsh7th/cmp-nvim-lsp'
@@ -56,6 +57,12 @@ vim.keymap.set('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>')
 vim.keymap.set('n', 'gt', '<cmd>lua vim.lsp.buf.type_definition()<CR>')
 vim.keymap.set('n', 'rn', '<cmd>lua vim.lsp.buf.rename()<CR>')
 vim.keymap.set('n', 'ca', '<cmd>lua vim.lsp.buf.code_action()<CR>')
+vim.keymap.set('n', '<F5>', '<cmd>DapContinue<CR>')
+vim.keymap.set('n', '<F10>', '<cmd>DapStepOver<CR>')
+vim.keymap.set('n', '<F11>', '<cmd>DapStepInto<CR>')
+vim.keymap.set('n', '<F12>', '<cmd>DapStepOut<CR>')
+vim.keymap.set('n', '<space>db', '<cmd>DapToggleBreakpoint<CR>')
+vim.keymap.set('n', '<space>dd', '<cmd>lua require"dapui".toggle()<CR>')
 vim.keymap.set('n', '<space>tt', '<cmd>NvimTreeToggle<CR>')
 vim.keymap.set('n', '<space>to', '<cmd>NvimTreeFocus<CR>')
 vim.keymap.set('n', '<space>tf', '<cmd>NvimTreeFindFile<CR>')
@@ -74,6 +81,9 @@ require('mason-lspconfig').setup_handlers({
     require('lspconfig')[server].setup(opt)
   end
 })
+
+---------- dap --------------------
+require('dapui').setup()
 
 ---------- completion --------------------
 require('cmp').setup({
