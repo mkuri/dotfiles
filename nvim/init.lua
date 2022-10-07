@@ -100,7 +100,14 @@ require('gitsigns').setup({
 })
 
 ---------- nvim-tree --------------------
-require('nvim-tree').setup()
+require('nvim-tree').setup({
+  view = {
+    adaptive_size = true,
+  },
+  renderer = {
+    symlink_destination = false,
+  },
+})
 
 ---------- comment --------------------
 require('Comment').setup()
