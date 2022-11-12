@@ -8,6 +8,12 @@ require('packer').startup(function()
   use 'mfussenegger/nvim-dap'
   use 'rcarriga/nvim-dap-ui'
   use 'jose-elias-alvarez/null-ls.nvim'
+  use {
+    'folke/trouble.nvim',
+    requires = {
+      'kyazdani42/nvim-web-devicons',
+    },
+  }
   use 'hrsh7th/nvim-cmp'
   use 'hrsh7th/cmp-nvim-lsp'
   use 'hrsh7th/cmp-buffer'
@@ -49,7 +55,7 @@ vim.keymap.set('n', '<space>sC', '<cmd>FzfLua git_commits<CR>')
 vim.keymap.set('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>')
 vim.keymap.set('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>')
 vim.keymap.set('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<CR>')
-vim.keymap.set('n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>')
+vim.keymap.set('n', 'gr', '<cmd>TroubleToggle lsp_references<CR>')
 vim.keymap.set('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>')
 vim.keymap.set('n', 'gt', '<cmd>lua vim.lsp.buf.type_definition()<CR>')
 vim.keymap.set('n', 'rn', '<cmd>lua vim.lsp.buf.rename()<CR>')
@@ -64,6 +70,7 @@ vim.keymap.set('n', '<space>tt', '<cmd>NvimTreeToggle<CR>')
 vim.keymap.set('n', '<space>to', '<cmd>NvimTreeFocus<CR>')
 vim.keymap.set('n', '<space>tf', '<cmd>NvimTreeFindFile<CR>')
 vim.keymap.set('n', '<space>gb', '<cmd>ToGithub<CR>')
+vim.keymap.set('n', '<space>xx', '<cmd>TroubleToggle<CR>')
 vim.keymap.set('n', '<esc><esc>', '<cmd>nohlsearch<CR>')
 
 ---------- lsp --------------------
