@@ -4,16 +4,15 @@ require('packer').startup(function()
   use 'neovim/nvim-lspconfig'
   use 'williamboman/mason.nvim'
   use 'williamboman/mason-lspconfig.nvim'
-  use 'j-hui/fidget.nvim'
   use 'mfussenegger/nvim-dap'
   use 'rcarriga/nvim-dap-ui'
-  use 'jose-elias-alvarez/null-ls.nvim'
   use {
     'folke/trouble.nvim',
     requires = {
       'kyazdani42/nvim-web-devicons',
     },
   }
+  use 'j-hui/fidget.nvim'
   use 'hrsh7th/nvim-cmp'
   use 'hrsh7th/cmp-nvim-lsp'
   use 'hrsh7th/cmp-buffer'
@@ -50,8 +49,6 @@ vim.keymap.set('n', '<space><space>', '<cmd>FzfLua builtin<CR>')
 vim.keymap.set('n', '<space>sg', '<cmd>FzfLua live_grep<CR>')
 vim.keymap.set('n', '<space>ss', '<cmd>FzfLua lsp_document_symbols<CR>')
 vim.keymap.set('n', '<space>sd', '<cmd>FzfLua diagnostics_document<CR>')
-vim.keymap.set('n', '<space>sc', '<cmd>FzfLua git_bcommits<CR>')
-vim.keymap.set('n', '<space>sC', '<cmd>FzfLua git_commits<CR>')
 vim.keymap.set('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>')
 vim.keymap.set('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>')
 vim.keymap.set('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<CR>')
@@ -69,6 +66,7 @@ vim.keymap.set('n', '<space>dd', '<cmd>lua require"dapui".toggle()<CR>')
 vim.keymap.set('n', '<space>tt', '<cmd>NvimTreeToggle<CR>')
 vim.keymap.set('n', '<space>to', '<cmd>NvimTreeFocus<CR>')
 vim.keymap.set('n', '<space>tf', '<cmd>NvimTreeFindFile<CR>')
+vim.keymap.set('n', '<space>gc', '<cmd>FzfLua git_bcommits<CR>')
 vim.keymap.set('n', '<space>gb', '<cmd>ToGithub<CR>')
 vim.keymap.set('n', '<space>xx', '<cmd>TroubleToggle<CR>')
 vim.keymap.set('n', '<esc><esc>', '<cmd>nohlsearch<CR>')
