@@ -86,12 +86,17 @@ require('mason-lspconfig').setup_handlers({
 require('dapui').setup()
 
 ---------- completion --------------------
-require('cmp').setup({
-  sources = {
+local cmp = require('cmp')
+cmp.setup({
+  sources = cmp.config.sources({
     {name = 'nvim_lsp'},
     {name = 'buffer'},
     {name = 'path'},
-  }
+  }),
+  mapping = {
+    ['<C-p>'] = cmp.mapping.select_prev_item(),
+    ['<C-n>'] = cmp.mapping.select_next_item(),
+  },
 })
 
 ---------- gitsigns --------------------
