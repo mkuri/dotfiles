@@ -11,10 +11,7 @@ require('packer').startup(function()
   use 'hrsh7th/cmp-nvim-lsp'
   use 'hrsh7th/cmp-buffer'
   use 'hrsh7th/cmp-path'
-  use {
-    'lewis6991/gitsigns.nvim',
-    tag = 'release'
-  }
+  use 'lewis6991/gitsigns.nvim'
   use 'ibhagwan/fzf-lua'
   use {
     'kyazdani42/nvim-tree.lua',
