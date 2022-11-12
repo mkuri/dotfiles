@@ -4,6 +4,7 @@ require('packer').startup(function()
   use 'neovim/nvim-lspconfig'
   use 'williamboman/mason.nvim'
   use 'williamboman/mason-lspconfig.nvim'
+  use 'j-hui/fidget.nvim'
   use 'mfussenegger/nvim-dap'
   use 'rcarriga/nvim-dap-ui'
   use 'jose-elias-alvarez/null-ls.nvim'
@@ -77,6 +78,7 @@ require('mason-lspconfig').setup_handlers({
     require('lspconfig')[server].setup(opt)
   end
 })
+require('fidget').setup()
 
 ---------- dap --------------------
 require('dapui').setup()
