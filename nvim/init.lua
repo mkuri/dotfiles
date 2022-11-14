@@ -68,7 +68,7 @@ vim.keymap.set('n', '<space>to', '<cmd>NvimTreeFocus<CR>')
 vim.keymap.set('n', '<space>tf', '<cmd>NvimTreeFindFile<CR>')
 vim.keymap.set('n', '<space>gc', '<cmd>FzfLua git_bcommits<CR>')
 vim.keymap.set('n', '<space>gb', '<cmd>ToGithub<CR>')
-vim.keymap.set('n', '<space>xx', '<cmd>TroubleToggle<CR>')
+vim.keymap.set('n', '<space>xx', '<cmd>TroubleToggle document_diagnostics<CR>')
 vim.keymap.set('n', '<esc><esc>', '<cmd>nohlsearch<CR>')
 
 ---------- lsp --------------------
