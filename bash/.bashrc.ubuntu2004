@@ -58,7 +58,11 @@ export PYTHONSTARTUP=$XDG_CONFIG_HOME/python/startup.py
 source $HOME/.cargo/env
 
 # ros2
-source /opt/ros/galactic/setup.bash
+if [ $(lsb_release -rs) = 22.04 ]; then
+  source /opt/ros/humble/setup.bash
+elif [ $(lsb_release -rs) = 20.04 ]; then
+  source /opt/ros/galactic/setup.bash
+fi
 export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 export LD_LIBRARY_PATH="/usr/local/libtorch/lib:$LD_LIBRARY_PATH"
 export RCUTILS_COLORIZED_OUTPUT=1
