@@ -1,12 +1,12 @@
 [user]
-	name = Makoto Kurihara
-	email = mkuri8m@gmail.com
+  name = Makoto Kurihara
+  email = mkuri8m@gmail.com
 [init]
-	defaultBranch = main
+  defaultBranch = main
 [core]
-	pager = delta
-	editor = nvim
+  pager = delta
+  editor = nvim
 [delta]
-	side-by-side = true
+  side-by-side = true
 [pull]
   ff = only
