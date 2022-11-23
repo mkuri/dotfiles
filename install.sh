@@ -10,6 +10,13 @@ if [ ! -e $HOME/.local/bin/nvim ]; then
   sudo apt install -y libfuse2
 fi
 
+# google-chrome
+if [ ! -e /usr/bin/google-chrome ]; then
+  curl -O https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+  sudo dpkg -i google-chrome-stable_current_amd64.deb
+  rm -rf --verbose google-chrome-stable_current_amd64.deb
+fi
+
 # rust
 if [ ! -e $HOME/.cargo ]; then
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -36,7 +43,6 @@ fi
 if [ ! -e $HOME/.cargo/bin/topgrade ]; then
   cargo install topgrade
 fi
-
 
 # fzf
 if [ ! -e $HOME/.local/fzf ]; then
