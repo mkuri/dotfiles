@@ -8,7 +8,7 @@ ExecStart=/usr/local/bin/xkeysnail /home/${USER}/.config/xkeysnail/config.py
 Type=simple
 Restart=always
 RestartSec=10s
-Environment=DISPLAY=:1
+Environment=DISPLAY=:0
 
 [Install]
 WantedBy=default.target
