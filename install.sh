@@ -5,6 +5,7 @@ sudo apt install -y git ranger curl tmux tig xsel
 
 # nvim
 if [ ! -e $HOME/.local/bin/nvim ]; then
+  mkdir -p $HOME/.local/bin
   curl https://github.com/neovim/neovim/releases/download/stable/nvim.appimage -o $HOME/.local/bin/nvim
   chmod +x $HOME/.local/bin/nvim
   sudo apt install -y libfuse2
