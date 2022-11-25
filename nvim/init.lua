@@ -2,8 +2,6 @@
 require('packer').startup(function()
   use 'wbthomason/packer.nvim'
   use 'neovim/nvim-lspconfig'
-  use 'williamboman/mason.nvim'
-  use 'williamboman/mason-lspconfig.nvim'
   use 'mfussenegger/nvim-dap'
   use 'rcarriga/nvim-dap-ui'
   use {
@@ -72,17 +70,7 @@ vim.keymap.set('n', '<space>xx', '<cmd>TroubleToggle document_diagnostics<CR>')
 vim.keymap.set('n', '<space>n', '<cmd>nohlsearch<CR>')
 
 ---------- lsp --------------------
-require('mason').setup()
-require('mason-lspconfig').setup_handlers({
-  function(server)
-    local opt = {
-      on_attach = function(client, bufnr)
-        print("LSP started.")
-      end
-    }
-    require('lspconfig')[server].setup(opt)
-  end
-})
+require('lspconfig')['clangd'].setup{}
 require('fidget').setup()
 
 ---------- dap --------------------
