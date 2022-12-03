@@ -65,3 +65,24 @@ fi
 
 # mozc
 sudo apt install -y ibus-mozc mozc-utils-gui
+
+# mpv
+sudo apt install -y mpv
+
+# btop
+curl -O https://github.com/aristocratos/btop/releases/download/v1.2.13/btop-x86_64-linux-musl.tbz
+tar -Jxvf btop-x86_64-linux-musl.tbz
+cd btop
+make install --prefix=~/.local
+
+# flatpak
+sudo apt install -y flatpak
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+flatpak install -y flathub com.slack.Slack
+flatpak install -y flathub im.riot.Riot
+flatpak install -y flathub us.zoom.Zoom
+flatpak install -y flathub com.obsproject.Studio
+flatpak install -y flathub org.gimp.GIMP
+
+# nvm
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.2/install.sh | bash
