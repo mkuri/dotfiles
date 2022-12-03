@@ -79,3 +79,6 @@ if [ ! -e $XDG_CONFIG_HOME/xkeysnail/config.py ]; then
   ln -s --verbose $DOTDIR/xkeysnail/xkeysnail.service $XDG_CONFIG_HOME/systemd/user/
   systemctl --user enable xkeysnail.service
 fi
+
+# gnome settings
+gsettings set org.gnome.shell.extensions.dash-to-dock hot-keys false
