@@ -535,7 +535,7 @@ hints:
   #     key: U
   #     mods: Control|Shift
     - regex: "(https:|http:)[^\u0000-\u001F\u007F-\u009F<>\"\\s{-}\\^⟨⟩`]+"
-      command: { program: "brave-browser", args: ["-incognito"] }
+      command: { program: "google-chrome", args: ["--incognito"] }
       post_processing: true
       mouse:
         enabled: true
