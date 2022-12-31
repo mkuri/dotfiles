@@ -80,6 +80,7 @@ sudo apt install -y flatpak
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install -y flathub com.slack.Slack
 flatpak install -y flathub im.riot.Riot
+flatpak install -y flathub org.zulip.Zulip
 flatpak install -y flathub us.zoom.Zoom
 flatpak install -y flathub com.obsproject.Studio
 flatpak install -y flathub org.gimp.GIMP
