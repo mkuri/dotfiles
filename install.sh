@@ -84,6 +84,7 @@ flatpak install -y flathub org.zulip.Zulip
 flatpak install -y flathub us.zoom.Zoom
 flatpak install -y flathub com.obsproject.Studio
 flatpak install -y flathub org.gimp.GIMP
+flatpak install -y flathub sa.sy.bluerecorder
 
 # nvm
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.2/install.sh | bash
