@@ -35,14 +35,14 @@ if [ ! -e $XDG_CONFIG_HOME/gitui/key_bindings.ron ]; then
 fi
 
 # nvim
-if [ ! -e $XDG_CONFIG_HOME/nvim/init.lua ]; then
-  mkdir -p --verbose $XDG_CONFIG_HOME/nvim
-  ln -s --verbose $DOTDIR/nvim/init.lua $XDG_CONFIG_HOME/nvim/
-  if [ ! -e ~/.local/share/nvim/site/pack/packer/start/packer.nvim ]; then
-    git clone --depth 1 https://github.com/wbthomason/packer.nvim\
-     ~/.local/share/nvim/site/pack/packer/start/packer.nvim
-  fi
-fi
+# if [ ! -e $XDG_CONFIG_HOME/nvim/init.lua ]; then
+#   mkdir -p --verbose $XDG_CONFIG_HOME/nvim
+#   ln -s --verbose $DOTDIR/nvim/init.lua $XDG_CONFIG_HOME/nvim/
+#   if [ ! -e ~/.local/share/nvim/site/pack/packer/start/packer.nvim ]; then
+#     git clone --depth 1 https://github.com/wbthomason/packer.nvim\
+#      ~/.local/share/nvim/site/pack/packer/start/packer.nvim
+#   fi
+# fi
 
 # python
 if [ ! -e $XDG_CONFIG_HOME/python/startup.py ]; then
@@ -68,17 +68,37 @@ if [ ! -e $XDG_CONFIG_HOME/tmux/tmux.conf ]; then
 fi
 
 # xkeysnail
-if [ ! -e $XDG_CONFIG_HOME/xkeysnail/config.py ]; then
-  mkdir -p --verbose $XDG_CONFIG_HOME/xkeysnail
-  ln -s --verbose $DOTDIR/xkeysnail/config.py $XDG_CONFIG_HOME/xkeysnail/
-  # xkeysnail autostart
-  sudo groupadd uinput
-  sudo usermod -aG input,uinput ${USER}
-  sudo cp --verbose $DOTDIR/xkeysnail/*.rules /etc/udev/rules.d/
-  mkdir -p --verbose $XDG_CONFIG_HOME/systemd/user
-  ln -s --verbose $DOTDIR/xkeysnail/xkeysnail.service $XDG_CONFIG_HOME/systemd/user/
-  systemctl --user enable xkeysnail.service
-fi
+# if [ ! -e $XDG_CONFIG_HOME/xkeysnail/config.py ]; then
+#   mkdir -p --verbose $XDG_CONFIG_HOME/xkeysnail
+#   ln -s --verbose $DOTDIR/xkeysnail/config.py $XDG_CONFIG_HOME/xkeysnail/
+#   # xkeysnail autostart
+#   sudo groupadd uinput
+#   sudo usermod -aG input,uinput ${USER}
+#   sudo cp --verbose $DOTDIR/xkeysnail/*.rules /etc/udev/rules.d/
+#   mkdir -p --verbose $XDG_CONFIG_HOME/systemd/user
+#   ln -s --verbose $DOTDIR/xkeysnail/xkeysnail.service $XDG_CONFIG_HOME/systemd/user/
+#   systemctl --user enable xkeysnail.service
+# fi
 
 # gnome settings
 gsettings set org.gnome.shell.extensions.dash-to-dock hot-keys false
+
+# For i3-like workspace experience
+dconf write /org/gnome/mutter/dynamic-workspaces false
+dconf write /org/gnome/desktop/wm/preferences/num-workspaces 10
+
+for i in {1..10}
+do
+   dconf write /org/gnome/desktop/wm/keybindings/switch-to-workspace-$i "['<Super>$i']"
+   # Remove default binding
+   dconf write /org/gnome/shell/keybindings/switch-to-application-$i "@as []"
+done
+# Workspace 10 -> 0
+dconf write /org/gnome/desktop/wm/keybindings/switch-to-workspace-10 "['<Super>0']"
+
+for i in {1..10}
+do
+   dconf write /org/gnome/desktop/wm/keybindings/move-to-workspace-$i "['<Super><Shift>$i']"
+done
+# Workspace 10 -> 0
+dconf write /org/gnome/desktop/wm/keybindings/move-to-workspace-10 "['<Super><Shift>0']"
