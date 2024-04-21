@@ -1,0 +1,30 @@
+modmap:
+  - name: SandS
+    remap:
+      Space: [Shift_L, Space]
+        
+  - name: alt henkan
+    remap:
+      KEY_LEFTALT:
+        held: KEY_LEFTALT
+        alone: KEY_MUHENKAN
+      KEY_RIGHTALT:
+        held: KEY_RIGHTALT
+        alone: KEY_HENKAN
+        
+keymap:
+  - name: Global emacs keybind
+    remap:
+      C-h: backspace
+      C-n: down
+      C-p: up
+      C-m: enter
+        
+  # - name: Chrome emacs keybind
+  #   application:
+  #     only: Google-chrome
+  #   remap:
+  #     C-n: down
+  #     C-p: up
+  #     C-m: enter
+  #     Shift-C-p: C-p

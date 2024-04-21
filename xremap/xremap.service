@@ -1,0 +1,11 @@
+[Unit]
+Description=xreamp service
+
+[Service]
+Restart=always
+ExecStart=/home/makoto/.local/bin/xremap /home/makoto/.config/xremap/config.yml
+User=root
+Group=root
+
+[Install]
+WantedBy=default.target
