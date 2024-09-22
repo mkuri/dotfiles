@@ -1,0 +1,49 @@
+#
+# ~/.bashrc
+#
+
+# If not running interactively, don't do anything
+[[ $- != *i* ]] && return
+
+# prompt
+PS1='[\u \[\e[34m\]\w\[\e[0m\]]$(__git_ps1)\n\[\e[33m\]\$\[\e[0m\] '
+
+# env
+export XDG_CONFIG_HOME=$HOME/.config
+export XDG_CACHE_HOME=$HOME/.cache
+export XDG_DATA_HOME=$HOME/.local/share
+export PATH=$PATH:$HOME/.local/bin
+if command -v nvim > /dev/null 2>&1; then
+    export EDITOR=nvim
+fi
+
+# alias
+alias ls='ls -la --color=auto'
+alias j='cd $(fd --type d --hidden . | fzf)'
+
+# bash-completion
+if ! shopt -oq posix; then
+  if [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+  elif [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+  fi
+fi
+
+# fzf
+if command -v fzf > /dev/null 2>&1; then
+  eval "$(fzf --bash)"
+fi
+
+# ble.sh
+if [ -f $XDG_DATA_HOME/bash/blesh/ble.sh ]; then
+  . $XDG_DATA_HOME/bash/blesh/ble.sh
+fi
+
+# atuin
+if command -v atuin > /dev/null 2>&1; then
+  eval "$(atuin init bash)"
+fi
+
+# python
+export PYTHONSTARTUP=$XDG_CONFIG_HOME/python/startup.py
