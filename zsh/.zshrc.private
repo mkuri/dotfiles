@@ -71,14 +71,3 @@ if [ -f "$HOME/.cargo/env" ]; then
   source "$HOME/.cargo/env"
 fi
 
-# nvim
-if type nvim > /dev/null 2>&1; then
-    export EDITOR=nvim
-fi
-
-# python
-export PYTHONSTARTUP=$XDG_CONFIG_HOME/python/startup.py
-
-# rust
-source $HOME/.cargo/env
-
