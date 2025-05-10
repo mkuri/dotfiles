@@ -74,3 +74,5 @@ if [ -f "$HOME/.cargo/env" ]; then
   source "$HOME/.cargo/env"
 fi
 
+# android
+export PATH=$PATH:$HOME/Library/Android/sdk/platform-tools
