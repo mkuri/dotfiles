@@ -1,0 +1,103 @@
+---------- Install mini.nvim and set up nvim.deps --------------------
+
+-- Clone 'mini.nvim' manually in a way that it gets managed by 'mini.deps'
+local path_package = vim.fn.stdpath('data') .. '/site/'
+local mini_path = path_package .. 'pack/deps/start/mini.nvim'
+if not vim.uv.fs_stat(mini_path) then
+  vim.cmd('echo "Installing `mini.nvim`" | redraw')
+  local clone_cmd = {
+    'git', 'clone', '--filter=blob:none',
+    'https://github.com/echasnovski/mini.nvim', mini_path
+  }
+  vim.fn.system(clone_cmd)
+  vim.cmd('packadd mini.nvim | helptags ALL')
+  vim.cmd('echo "Installed `mini.nvim`" | redraw')
+end
+
+-- Set up 'mini.deps' (customize to your liking)
+require('mini.deps').setup({ path = { package = path_package } })
+
+-- Define helpers
+local add, now, later = MiniDeps.add, MiniDeps.now, MiniDeps.later
+
+---------- Global options --------------------
+vim.opt.number = true
+vim.opt.tabstop = 2
+vim.opt.shiftwidth = 2
+vim.opt.expandtab = true
+vim.opt.smartindent = true
+vim.opt.clipboard = "unnamedplus"
+
+---------- mini.nvim (Text editing) --------------------
+later(function()
+  require('mini.completion').setup()
+end)
+
+now(function()
+  require('mini.sessions').setup()
+end)
+
+---------- mini.nvim (Workflow) --------------------
+later(function()
+  require('mini.diff').setup()
+end)
+
+later(function()
+  require('mini.extra').setup()
+end)
+
+later(function()
+  require('mini.files').setup()
+  vim.keymap.set('n', '<space>t', MiniFiles.open, opts)
+end)
+
+later(function()
+  require('mini.pick').setup({
+    mappings = {delete_char = '<C-h>'}
+  })
+  vim.keymap.set('n', '<space>f', '<cmd>Pick files<CR>')
+  vim.keymap.set('n', '<space>h', '<cmd>Pick visit_paths<CR>')
+  vim.keymap.set('n', '<space>b', '<cmd>Pick buffers<CR>')
+  vim.keymap.set('n', '<space>l', '<cmd>Pick buf_lines<CR>')
+  vim.keymap.set('n', '<space>s', '<cmd>Pick grep_live<CR>')
+end)
+
+later(function()
+  require('mini.visits').setup()
+end)
+
+---------- mini.nvim (Appearance) --------------------
+now(function()
+  require('mini.notify').setup()
+end)
+
+now(function()
+  require('mini.starter').setup()
+end)
+
+now(function()
+  require('mini.trailspace').setup()
+end)
+
+---------- LSP --------------------
+later(function()
+	add('https://github.com/williamboman/mason.nvim')
+  require('mason').setup()
+end)
+
+---------- Markdown --------------------
+local function toggle_checkbox()
+  local line = vim.api.nvim_get_current_line()
+
+  if line:find("%[[xX]%]") then
+    line = line:gsub("%[[xX]%]", "[ ]", 1)
+  elseif line:find("%[%s?%]") then
+    line = line:gsub("%[%s?%]", "[x]", 1)
+  end
+
+  vim.api.nvim_set_current_line(line)
+end
+
+vim.keymap.set("n", "<space>c", toggle_checkbox, { desc = "Toggle Markdown checkbox" })
+
+
