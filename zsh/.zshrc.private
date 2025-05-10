@@ -81,3 +81,17 @@ fi
 
 # android
 export PATH=$PATH:$HOME/Library/Android/sdk/platform-tools
+
+# functions
+function hist-select() {
+  local selected_cmd
+  selected_cmd=$(history -n 1 | fzf --tac --no-sort --reverse --height 40% | sed 's/ *[0-9]* *//')
+  if [[ -n "$selected_cmd" ]]; then
+    BUFFER="$selected_cmd"
+    CURSOR=${#BUFFER}
+    zle reset-prompt
+  fi
+}
+zle -N hist-select
+bindkey '^R' hist-select
+
