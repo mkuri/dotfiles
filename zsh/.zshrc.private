@@ -44,6 +44,11 @@ compinit
 
 # alias
 alias ls="ls -la --color=auto"
+j() {
+  local dir
+  dir=$(fd --type d --hidden . $HOME/projects $HOME/Dropbox/projects $XDG_CONFIG_HOME | fzf)
+  [[ -n $dir ]] && cd $dir
+}
 
 # abbr
 if [ -f "$XDG_CONFIG_HOME/zsh/zsh-abbr/zsh-abbr.zsh" ]; then
