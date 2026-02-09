@@ -82,6 +82,9 @@ fi
 # android
 export PATH=$PATH:$HOME/Library/Android/sdk/platform-tools
 
+# java
+export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
+
 # functions
 function hist-select() {
   local selected_cmd
