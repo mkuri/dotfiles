@@ -12,6 +12,10 @@ mkdir -p "$CLAUDE_HOME"
 for file in settings.json keybindings.json; do
   target="$CLAUDE_HOME/$file"
   source="$DOTDIR/claude/$file"
+  if [ ! -e "$source" ]; then
+    echo "ERROR: source not found: $source"
+    continue
+  fi
   if [ -L "$target" ]; then
     echo "skip: $target (already a symlink)"
   elif [ -e "$target" ]; then
@@ -26,6 +30,10 @@ done
 for dir in rules hooks; do
   target="$CLAUDE_HOME/$dir"
   source="$DOTDIR/claude/$dir"
+  if [ ! -e "$source" ]; then
+    echo "ERROR: source not found: $source"
+    continue
+  fi
   if [ -L "$target" ]; then
     echo "skip: $target (already a symlink)"
   elif [ -e "$target" ]; then
