@@ -28,8 +28,8 @@ for dir in rules hooks; do
   source="$DOTDIR/claude/$dir"
   if [ -L "$target" ]; then
     echo "skip: $target (already a symlink)"
-  elif [ -d "$target" ]; then
-    echo "WARN: $target exists as a directory. Back it up and remove it, then re-run."
+  elif [ -e "$target" ]; then
+    echo "WARN: $target exists and is not a symlink. Back it up and remove it, then re-run."
   else
     ln -s "$source" "$target"
     echo "linked: $target -> $source"
