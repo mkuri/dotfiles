@@ -1,18 +1,29 @@
 {
-  "enabledPlugins": {
-    "superpowers@claude-plugins-official": true,
-    "context7@claude-plugins-official": true
-  },
   "hooks": {
-    "Stop": [
+    "Notification": [
+      {
+        "matcher": "permission_prompt|idle_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/ntfy-notify.sh"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/notify-on-stop.sh"
+            "command": "~/.claude/hooks/claude-push.sh"
           }
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true,
+    "context7@claude-plugins-official": true
   }
 }
