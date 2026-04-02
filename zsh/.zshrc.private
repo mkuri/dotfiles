@@ -82,6 +82,9 @@ fi
 # android
 export PATH=$PATH:$HOME/Library/Android/sdk/platform-tools
 
+# node
+export PATH="/opt/homebrew/opt/node@22/bin:$PATH"
+
 # java
 export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
 
@@ -97,4 +100,7 @@ function hist-select() {
 }
 zle -N hist-select
 bindkey '^R' hist-select
+
+# claude code
+export CLAUDE_CODE_EFFORT_LEVEL=max
 
