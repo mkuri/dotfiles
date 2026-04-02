@@ -1,0 +1,2 @@
+# Disable Command+W to prevent accidental window close during IME input
+keybind = super+w=unbind
