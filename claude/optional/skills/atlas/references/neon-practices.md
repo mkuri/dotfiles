@@ -2,15 +2,35 @@
 
 ## Connection URL Composition
 
-Compose the database URL from individual environment variables in `atlas.hcl` using `locals` and `getenv()`. Do not define a separate full `DATABASE_URL` — build it from components to avoid duplication.
+Load credentials from `.env` via `data "external"` and compose the URL in `locals`. This avoids exporting secrets into the shell environment and eliminates duplicate `DATABASE_URL` variables.
 
 ```hcl
+data "external" "env" {
+  program = ["python3", "load_env.py"]
+}
+
 locals {
-  db_url = "postgresql://${getenv("NEON_USER")}:${getenv("NEON_PASSWORD")}@${getenv("NEON_HOST")}/${getenv("NEON_DATABASE")}?sslmode=require"
+  env    = jsondecode(data.external.env)
+  db_url = "postgresql://${local.env.NEON_USER}:${local.env.NEON_PASSWORD}@${local.env.NEON_HOST}/${local.env.NEON_DATABASE}?sslmode=require"
 }
 ```
 
-Required environment variables:
+The `load_env.py` script reads the project's `.env` file and outputs JSON. Place it alongside `atlas.hcl`.
+
+```python
+import json
+
+env = {}
+with open("../.env") as f:
+    for line in f:
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            key, _, value = line.partition("=")
+            env[key.strip()] = value.strip()
+print(json.dumps(env))
+```
+
+Required environment variables in `.env`:
 - `NEON_HOST` — Direct connection endpoint (e.g., `ep-xxx.region.aws.neon.tech`). Must NOT include `-pooler` suffix.
 - `NEON_DATABASE` — Database name
 - `NEON_USER` — Database user
@@ -38,8 +58,13 @@ migration {
 ## atlas.hcl Template for Neon
 
 ```hcl
+data "external" "env" {
+  program = ["python3", "load_env.py"]
+}
+
 locals {
-  db_url = "postgresql://${getenv("NEON_USER")}:${getenv("NEON_PASSWORD")}@${getenv("NEON_HOST")}/${getenv("NEON_DATABASE")}?sslmode=require"
+  env    = jsondecode(data.external.env)
+  db_url = "postgresql://${local.env.NEON_USER}:${local.env.NEON_PASSWORD}@${local.env.NEON_HOST}/${local.env.NEON_DATABASE}?sslmode=require"
 }
 
 env "neon" {
