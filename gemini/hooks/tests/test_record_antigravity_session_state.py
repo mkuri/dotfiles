@@ -27,7 +27,7 @@ class HandleEventTests(unittest.TestCase):
         return json.loads((self.state_dir / f"{conv}.json").read_text())
 
     def test_event_state_mapping(self):
-        cases = {"PreInvocation": "running", "PostToolUse": "running", "Stop": "idle"}
+        cases = {"PreInvocation": "running", "Stop": "idle"}
         for event, expected in cases.items():
             with self.subTest(event=event):
                 hook.handle_event(event, self.payload(conv=event),
@@ -42,11 +42,12 @@ class HandleEventTests(unittest.TestCase):
     def test_unknown_event_ignored(self):
         hook.handle_event("PreToolUse", self.payload(), self.state_dir, 100.0, 42)
         hook.handle_event("SessionStart", self.payload(), self.state_dir, 100.0, 42)
+        hook.handle_event("PostToolUse", self.payload(), self.state_dir, 100.0, 42)
         self.assertEqual(list(self.state_dir.iterdir()), [])
 
     def test_since_preserved_on_same_state(self):
         hook.handle_event("PreInvocation", self.payload(), self.state_dir, 100.0, 42)
-        hook.handle_event("PostToolUse", self.payload(), self.state_dir, 150.0, 42)
+        hook.handle_event("PreInvocation", self.payload(), self.state_dir, 150.0, 42)
         r = self.read()
         self.assertEqual(r["since"], 100.0)
         self.assertEqual(r["updated_at"], 150.0)

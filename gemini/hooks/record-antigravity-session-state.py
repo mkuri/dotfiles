@@ -7,6 +7,11 @@ file per session at $XDG_STATE_HOME/antigravity-sessions/<id>.json via the
 shared session_state helper. The schema is the same versioned contract the
 Claude producer writes, consumed by display tools such as agent-status-bar.
 
+Only PreInvocation -> running and Stop -> idle are handled. PostToolUse is
+deliberately NOT hooked: live testing showed a trailing PostToolUse fires
+AFTER Stop for a turn, which would reset the state back to running and the
+session would never settle to idle.
+
 Antigravity requires every hook to emit a JSON object on stdout; this monitor
 always prints `{}` and never alters the agent's behavior (it does not hook
 PreToolUse). Must never break or slow `agy`: always exits 0.
@@ -22,7 +27,6 @@ import session_state
 
 EVENT_STATES = {
     "PreInvocation": "running",
-    "PostToolUse": "running",
     "Stop": "idle",
 }
 
