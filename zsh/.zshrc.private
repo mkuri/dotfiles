@@ -101,6 +101,3 @@ function hist-select() {
 zle -N hist-select
 bindkey '^R' hist-select
 
-# claude code
-export CLAUDE_CODE_EFFORT_LEVEL=max
-
