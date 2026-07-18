@@ -2,7 +2,17 @@
 
 ## Language
 
-All GitHub Issues, Pull Requests (title and body), and commit messages MUST be written in English. This applies to all content visible on GitHub, including comments and review feedback.
+All content committed to git or visible on GitHub MUST be in English. This applies to every form of text in the repo or on GitHub, including:
+
+- Commit messages (subject and body)
+- PR/issue titles, bodies, comments, and review feedback
+- Source code comments and docstrings
+- Committed Markdown documents (specs, READMEs, ADRs, design docs)
+- Test names, fixtures, log strings, and any other in-repo text
+
+The only place Japanese (or any other natural language) belongs is in localization source files where the language IS the data — e.g. Flutter slang `*_ja.g.dart`, JSON i18n bundles, fixtures asserting i18n behavior. Outside those files, default to English without exception.
+
+When referring to Japanese UI strings in commits, comments, or docs, name the i18n key (e.g. `cancelAssignment.button`) or describe the action in English ("the recent-payout row") — do not paste the Japanese string itself, even when no precise English equivalent exists; describe the concept instead.
 
 ## Issue Management
 
