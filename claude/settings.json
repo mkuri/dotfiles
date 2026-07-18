@@ -116,6 +116,8 @@
       }
     }
   },
+  "tui": "fullscreen",
+  "skipWorkflowUsageWarning": true,
   "remoteControlAtStartup": true,
   "agentPushNotifEnabled": true
 }
