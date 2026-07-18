@@ -4,7 +4,6 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from unittest import mock
 
 HOOK_PATH = Path(__file__).resolve().parent.parent / "record-session-state.py"
 _spec = importlib.util.spec_from_file_location("record_session_state", HOOK_PATH)
