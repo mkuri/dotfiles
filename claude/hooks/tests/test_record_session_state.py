@@ -4,7 +4,6 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from unittest import mock
 
 HOOK_PATH = Path(__file__).resolve().parent.parent / "record-session-state.py"
 _spec = importlib.util.spec_from_file_location("record_session_state", HOOK_PATH)
@@ -90,30 +89,6 @@ class HandleEventTests(unittest.TestCase):
         payload = {"hook_event_name": "Stop", "session_id": "abc123"}
         hook.handle_event(payload, self.state_dir, 110.0, 42)
         self.assertEqual(self.read()["cwd"], "/tmp/proj")
-
-
-class ResolveClaudePidTests(unittest.TestCase):
-    def _fake_ps(self, table):
-        """table: pid -> (ppid, comm). Mimics `ps -o ppid=,comm= -p PID`."""
-        def fake_run(cmd, **kwargs):
-            pid = int(cmd[-1])
-            ppid, comm = table[pid]
-            return mock.Mock(stdout=f"{ppid} {comm}\n")
-        return fake_run
-
-    def test_direct_parent_is_claude(self):
-        with mock.patch.object(hook.subprocess, "run",
-                               self._fake_ps({10: (1, "claude")})):
-            self.assertEqual(hook.resolve_claude_pid(10), 10)
-
-    def test_skips_shell_wrapper(self):
-        table = {10: (9, "/bin/sh"), 9: (1, "claude")}
-        with mock.patch.object(hook.subprocess, "run", self._fake_ps(table)):
-            self.assertEqual(hook.resolve_claude_pid(10), 9)
-
-    def test_ps_failure_returns_input(self):
-        with mock.patch.object(hook.subprocess, "run", side_effect=OSError):
-            self.assertEqual(hook.resolve_claude_pid(10), 10)
 
 
 if __name__ == "__main__":

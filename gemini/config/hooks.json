@@ -1,0 +1,12 @@
+{
+  "record-session-state": {
+    "PreInvocation": [
+      { "type": "command",
+        "command": "python3 $HOME/.gemini/hooks/record-antigravity-session-state.py PreInvocation" }
+    ],
+    "Stop": [
+      { "type": "command",
+        "command": "python3 $HOME/.gemini/hooks/record-antigravity-session-state.py Stop" }
+    ]
+  }
+}
