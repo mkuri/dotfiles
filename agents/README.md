@@ -17,7 +17,7 @@ Run the installer from anywhere:
 The installer creates these links without replacing unrelated existing files:
 
 ```text
-~/.claude/rules/common.md                    -> agents/AGENTS.md
+~/.claude/CLAUDE.md                          -> agents/AGENTS.md
 ~/.claude/rules/sub-agent-model-policy.md    -> claude/rules/sub-agent-model-policy.md
 ~/.claude/settings.json                      -> claude/settings.json
 ~/.claude/keybindings.json                   -> claude/keybindings.json

@@ -72,9 +72,8 @@ prepare_claude_rules_dir() {
 
 # Shared instructions.
 link_path "$DOTFILES_DIR/agents/AGENTS.md" "$TARGET_HOME/.codex/AGENTS.md" || setup_status=1
+link_path "$DOTFILES_DIR/agents/AGENTS.md" "$TARGET_HOME/.claude/CLAUDE.md" || setup_status=1
 if prepare_claude_rules_dir; then
-  link_path "$DOTFILES_DIR/agents/AGENTS.md" \
-    "$TARGET_HOME/.claude/rules/common.md" || setup_status=1
   link_path "$DOTFILES_DIR/claude/rules/sub-agent-model-policy.md" \
     "$TARGET_HOME/.claude/rules/sub-agent-model-policy.md" || setup_status=1
 else
