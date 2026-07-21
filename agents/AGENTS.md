@@ -131,3 +131,113 @@ recommend credential rotation if the data may have been exposed.
 - Use them only as working documents during implementation.
 - Remove them from the worktree during the development-branch finishing
   workflow.
+
+## Engineering Policy
+
+Default technology choices for personal, mobile, web, tools, and systems work.
+Deviate only with a concrete reason.
+
+### Principles
+
+> Start small, cheap, and standard; never block a future migration.
+
+- Optimize only when a concrete need appears: reach for extra infrastructure,
+  layers, or scale only once the need is real. At small scale, prefer a single
+  process, a single VPS, or Docker Compose.
+- Choose for maintainability and operability, not novelty: weigh development
+  speed, maintainability, and ease of incident response, and prefer proven
+  technology over novelty.
+- Keep it portable: everything runs as a standard, stateless container, so the
+  same image runs locally, on a home server, on a VPS, or on Cloud Run. In
+  practice the container reads its port from env, persists nothing to local disk,
+  keeps no in-memory sessions, takes injected config and secrets, shuts down
+  gracefully, and logs structured output to stdout. Keep persistence, object
+  storage, identity providers, and billing integrations behind explicit
+  application boundaries; do not leak provider-specific APIs into the domain
+  layer.
+- Weigh cost together with operational responsibility: treat managed-service fees
+  as the price of outsourcing incident response, backups, monitoring, and
+  security updates. Migrate once the operational burden or data-loss risk
+  outweighs the fee.
+- Build on open knowledge: prefer proven OSS and learn from public
+  implementations.
+- Build in the open when practical: default personal projects to public
+  development unless privacy, security, or commercial constraints require
+  otherwise.
+- Documentation-first: capture intent and decisions in writing before and as you
+  build, not after.
+
+### Default Stack by Use Case
+
+#### Languages & frameworks
+
+- Mobile: Flutter with Riverpod, Freezed, GoRouter; no direct DB access.
+- Backend: Go, standard library first (net/http, ServeMux, context, log/slog,
+  encoding/json, database/sql or pgx); avoid large web frameworks.
+- Web
+  - Default: Go html/template, htmx, Tailwind.
+  - Next.js only for in-browser editors, complex drag-and-drop, offline support,
+    advanced real-time UI, a required React-only library, or a dedicated frontend
+    team; not merely because the product is commercial.
+- Systems
+  - Default: Rust for low-level or memory-critical work, parsers, storage
+    engines, embedded, WASM.
+  - C++ only for existing C++ assets, games/GPU/media, or extreme low-latency
+    requirements.
+  - Go for services and ops.
+- Tools
+  - Rust for long-lived, performance-sensitive, or widely distributed CLIs.
+  - Go for API/cloud/ops-heavy tools, or tools sharing an existing Go codebase.
+  - Python for short-lived scripts, analysis, AI/ML, and experiments.
+
+#### Data & platform services
+
+- Database
+  - Default: PostgreSQL for server apps with commercial potential, multiple
+    users, concurrent writes, or network access.
+  - SQLite for local-only, single-user, CLI, desktop, embedded, or cache use that
+    will clearly never become a server.
+  - Move to managed PostgreSQL when DB ops get heavy, PITR or frequent backups
+    are needed, multiple people operate it, or data loss has significant business
+    impact; typical choices include Supabase, Neon, or Cloud SQL.
+- Schema: Atlas by default, with the declarative schema as the source of truth;
+  generate versioned SQL → lint/review → apply; never apply a declarative diff
+  straight to production; make breaking changes gradually and forward-compatibly.
+- Storage
+  - Cloudflare R2 for delivery objects: the Go API issues presigned URLs; never
+    hand keys to the client.
+  - Backblaze B2 for backups: keep them off the DB's provider and test restores
+    regularly.
+- Auth: Firebase Authentication; verify the client-issued JWT in the backend, and
+  authorize in the application layer.
+- Payments: Apple/Google IAP for in-app digital content, Stripe for web
+  contracts, RevenueCat for entitlements.
+- Config: TOML, precedence defaults → TOML → env → flags; secrets in env vars,
+  Docker secrets, or a Secret Manager, never in TOML or Git.
+
+#### Deploy ladder
+
+Start cheap and private; move down the list only when the need arises.
+
+- Personal / private: Home Linux + Tailscale + Docker Compose
+- Small public: VPS + Caddy + Docker Compose
+  - App and DB may share one host initially; never expose port 5432; off-VPS
+    backups are mandatory.
+- Growth / less ops: Cloud Run
+  - Managed default (fits Flutter / Firebase Auth). Use AWS only when the
+    team/customer is AWS-centric or an AWS-specific service is required.
+- DB ops too heavy: managed PostgreSQL (Supabase, Neon, Cloud SQL)
+
+### Architecture
+
+Feature-based and lightweight: separate technical detail (HTTP, DB, external
+SaaS, UI) from business logic, but do not multiply layers. Stay lighter than
+textbook clean architecture. The last rule below is the distinctive one.
+
+- Keep business logic out of HTTP handlers, and SQL out of the service and UI
+  layers.
+- The domain layer references no web framework, DB driver, or cloud SDK; wrap
+  external services at the boundary.
+- Add a layer or an interface only for a real reason: an alternative
+  implementation, an external boundary, or a genuine testing need. Never add
+  empty layers or interfaces for plain CRUD.
