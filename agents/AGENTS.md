@@ -290,9 +290,14 @@ Top-level buckets:
 | `platform` — third-party SaaS adapters (SDK types stop here) | `internal/platform/` | `lib/platform/` |
 | Features | `internal/<feature>/` | `lib/features/<feature>/` |
 
-Classification: we build/operate it → `core` (config, logging, HTTP
-server/client, our self-hosted Postgres); a third-party SaaS boundary →
-`platform` (Firebase auth, RevenueCat, Stripe, R2, FCM). `platform/*` may depend
+Classification: reached through a portable, standardized protocol (or a
+foundation we build ourselves) → `core` (config, logging, HTTP server/client,
+PostgreSQL via `database/sql` or pgx — self-hosted or managed alike); a
+third-party SaaS boundary reached through a provider-specific API/SDK →
+`platform` (Firebase auth, RevenueCat, Stripe, R2, FCM). The deciding factor is
+the interface, not who operates it: moving Postgres to managed hosting (Cloud
+SQL/Supabase/Neon) keeps it in `core`; it would move to `platform` only if the
+code adopted a provider-specific API. `platform/*` may depend
 on `core/*`, never the reverse. Both hold descriptively-named leaf packages
 (`core/config`, `platform/stripe`), so the wrapper directory is organizational
 only, not a `util`/`common` grab-bag. Go idiom would drop the wrapper and place
@@ -311,12 +316,23 @@ subfolders):
 | data (outbound I/O adapter) | `store.go` (`Store`) | `data/<model>_repository.dart` + `data/<name>_dto.dart` |
 | inbound adapter | `handler.go` (`Handler`, HTTP) | `ui/<screen>_screen.dart` + `<screen>_view_model.dart` + `widgets/` |
 
+- In Go these layers are a file-and-naming convention within one package, not a
+  compile-time boundary: the package compiles as a unit, so domain purity (no
+  web framework or DB driver in `domain.go`) is enforced by naming and review,
+  and a domain test still compiles the package's HTTP/DB files. This is a
+  deliberate lightweight trade-off; when a feature genuinely needs compile-time
+  isolation, split the roles into subpackages.
 - The Flutter UI class is `*ViewModel` in `ui/` (Riverpod does not force a
   `Controller` name; the notifier class is named freely).
 - DTOs are separate files that mirror the HTTP contract (not DB rows); the
   repository maps DTO ↔ domain, and domain never imports DTOs.
-- Repository interfaces are optional (Riverpod provider overrides cover tests);
-  add one only when two implementations genuinely coexist.
+- The `Store`/repository is itself the external-boundary layer, so "external
+  boundary" (Architecture rules) justifies the concrete adapter, not an
+  interface in front of it. Add a repository interface only for a second
+  implementation, or a genuine testing need the language does not otherwise
+  cover — in Flutter, Riverpod provider overrides cover tests, so this is rare;
+  in Go, prefer integration tests against a real DB and add an interface only
+  when injectable fakes are truly needed.
 - The inbound layer is optional: a Go feature used only by the worker/another
   service has no `handler.go`; a Flutter feature with no route of its own has
   `ui/widgets/` as its largest unit and no `*_screen.dart`.
