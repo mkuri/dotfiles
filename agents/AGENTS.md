@@ -21,13 +21,8 @@ writing in Japanese is a defect, not a stylistic choice.
 
 ### What Stays in English
 
-This conversational rule does not override the English-only requirement for
-content committed to git or visible on GitHub:
-
-- Commit messages, pull request and issue text, and review comments
-- Source code, code comments, docstrings, and identifiers
-- Committed Markdown documents, specifications, READMEs, and design documents
-
+This conversational rule never overrides the English-only requirement for
+content committed to git or shown on GitHub (see GitHub Conventions → Language).
 Code snippets, commands, file paths, and technical identifiers stay in their
 original form even inside explanations in another language.
 
@@ -317,22 +312,18 @@ subfolders):
 | inbound adapter | `handler.go` (`Handler`, HTTP) | `ui/<screen>_screen.dart` + `<screen>_view_model.dart` + `widgets/` |
 
 - In Go these layers are a file-and-naming convention within one package, not a
-  compile-time boundary: the package compiles as a unit, so domain purity (no
-  web framework or DB driver in `domain.go`) is enforced by naming and review,
-  and a domain test still compiles the package's HTTP/DB files. This is a
-  deliberate lightweight trade-off; when a feature genuinely needs compile-time
-  isolation, split the roles into subpackages.
+  compile-time boundary: domain purity is enforced by naming and review, not the
+  compiler. Deliberate lightweight trade-off; split the roles into subpackages
+  when a feature genuinely needs compile-time isolation.
 - The Flutter UI class is `*ViewModel` in `ui/` (Riverpod does not force a
   `Controller` name; the notifier class is named freely).
 - DTOs are separate files that mirror the HTTP contract (not DB rows); the
   repository maps DTO ↔ domain, and domain never imports DTOs.
-- The `Store`/repository is itself the external-boundary layer, so "external
-  boundary" (Architecture rules) justifies the concrete adapter, not an
-  interface in front of it. Add a repository interface only for a second
-  implementation, or a genuine testing need the language does not otherwise
-  cover — in Flutter, Riverpod provider overrides cover tests, so this is rare;
-  in Go, prefer integration tests against a real DB and add an interface only
-  when injectable fakes are truly needed.
+- The `Store`/repository is itself the external-boundary layer, so by the
+  Architecture rules it needs no interface in front of it by default. Add one
+  only for a second implementation or a real testing need — rare in Flutter
+  (provider overrides cover tests); in Go prefer integration tests against a real
+  DB, adding an interface only when injectable fakes are truly needed.
 - The inbound layer is optional: a Go feature used only by the worker/another
   service has no `handler.go`; a Flutter feature with no route of its own has
   `ui/widgets/` as its largest unit and no `*_screen.dart`.
