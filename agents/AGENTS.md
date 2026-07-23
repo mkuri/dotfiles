@@ -272,14 +272,15 @@ textbook clean architecture. The last rule below is the distinctive one.
   layers.
 - The domain layer references no web framework, DB driver, or cloud SDK; wrap
   external services at the boundary.
-- Add a layer or an interface only for a real reason: an alternative
-  implementation, an external boundary, or a genuine testing need. Never add
-  empty layers or interfaces for plain CRUD.
+- Add a layer only to wrap an external boundary; add an interface only for an
+  alternative implementation or a genuine testing need. Never add empty layers
+  or interfaces for plain CRUD.
 
 ### Naming & Directory Structure
 
-One clean-architecture layout across Go and Flutter, so layers correspond by
-role. Apply it opportunistically as code is touched, not as a big-bang rename.
+One clean-architecture-inspired layout across Go and Flutter, so layers
+correspond by role. Apply it opportunistically as code is touched, not as a
+big-bang rename.
 
 Top-level buckets:
 
@@ -290,14 +291,13 @@ Top-level buckets:
 | `platform` — third-party SaaS adapters (SDK types stop here) | `internal/platform/` | `lib/platform/` |
 | Features | `internal/<feature>/` | `lib/features/<feature>/` |
 
-Classification: reached through a portable, standardized protocol (or a
-foundation we build ourselves) → `core` (config, logging, HTTP server/client,
-PostgreSQL via `database/sql` or pgx — self-hosted or managed alike); a
-third-party SaaS boundary reached through a provider-specific API/SDK →
-`platform` (Firebase auth, RevenueCat, Stripe, R2, FCM). The deciding factor is
-the interface, not who operates it: moving Postgres to managed hosting (Cloud
-SQL/Supabase/Neon) keeps it in `core`; it would move to `platform` only if the
-code adopted a provider-specific API. `platform/*` may depend
+Classification: our own foundation and primary datastore → `core` (config,
+logging, HTTP server/client, and PostgreSQL via `database/sql`/pgx — self-hosted
+or managed alike, since it is our datastore, not who operates it, that decides);
+a third-party SaaS product wrapped so its SDK/API types stop at the boundary →
+`platform` (Firebase auth, RevenueCat, Stripe, R2, FCM). A portable wire
+protocol alone does not pull a service into `core`: R2 speaks the S3 API but is
+a hosted delivery boundary, so it stays in `platform`. `platform/*` may depend
 on `core/*`, never the reverse. Both hold descriptively-named leaf packages
 (`core/config`, `platform/stripe`), so the wrapper directory is organizational
 only, not a `util`/`common` grab-bag. Go idiom would drop the wrapper and place
