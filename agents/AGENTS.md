@@ -275,3 +275,48 @@ textbook clean architecture. The last rule below is the distinctive one.
 - Add a layer or an interface only for a real reason: an alternative
   implementation, an external boundary, or a genuine testing need. Never add
   empty layers or interfaces for plain CRUD.
+
+### Naming & Directory Structure
+
+One clean-architecture layout across Go and Flutter, so layers correspond by
+role. Apply it opportunistically as code is touched, not as a big-bang rename.
+
+Top-level buckets:
+
+| Role | Go | Flutter |
+|------|----|---------|
+| Entry / composition root | `cmd/<binary>/main.go` | `lib/app/` + `main_*.dart` |
+| `core` — own foundation (we build/operate it) | `internal/core/` | `lib/core/` |
+| `platform` — third-party SaaS adapters (SDK types stop here) | `internal/platform/` | `lib/platform/` |
+| Features | `internal/<feature>/` | `lib/features/<feature>/` |
+
+Classification: we build/operate it → `core` (config, logging, HTTP
+server/client, our self-hosted Postgres); a third-party SaaS boundary →
+`platform` (Firebase auth, RevenueCat, Stripe, R2, FCM). `platform/*` may depend
+on `core/*`, never the reverse. Both hold descriptively-named leaf packages
+(`core/config`, `platform/stripe`), so the wrapper directory is organizational
+only, not a `util`/`common` grab-bag. Go idiom would drop the wrapper and place
+these directly under `internal/`; keep the wrapper for cross-language
+correspondence. In Flutter, third-party SDK wrappers usually live in a feature's
+`data/` layer, so `lib/platform/` is thin — add a shared `lib/platform/<service>/`
+only when an integration is genuinely app-wide.
+
+Feature-internal layers (Go groups roles as files in one package; Flutter as
+subfolders):
+
+| Layer | Go `internal/<f>/` | Flutter `lib/features/<f>/` |
+|-------|--------------------|-----------------------------|
+| domain (models + pure rules) | `domain.go` | `domain/<model>.dart` |
+| application (use-case, orchestration, authz, tx boundary) | `service.go` (`Service`) | `application/<use_case>.dart` |
+| data (outbound I/O adapter) | `store.go` (`Store`) | `data/<model>_repository.dart` + `data/<name>_dto.dart` |
+| inbound adapter | `handler.go` (`Handler`, HTTP) | `ui/<screen>_screen.dart` + `<screen>_view_model.dart` + `widgets/` |
+
+- The Flutter UI class is `*ViewModel` in `ui/` (Riverpod does not force a
+  `Controller` name; the notifier class is named freely).
+- DTOs are separate files that mirror the HTTP contract (not DB rows); the
+  repository maps DTO ↔ domain, and domain never imports DTOs.
+- Repository interfaces are optional (Riverpod provider overrides cover tests);
+  add one only when two implementations genuinely coexist.
+- The inbound layer is optional: a Go feature used only by the worker/another
+  service has no `handler.go`; a Flutter feature with no route of its own has
+  `ui/widgets/` as its largest unit and no `*_screen.dart`.
