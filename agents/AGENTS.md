@@ -267,7 +267,7 @@ textbook clean architecture. The last rule below is the distinctive one.
   layers.
 - The domain layer references no web framework, DB driver, or cloud SDK; wrap
   external services at the boundary.
-- Add a layer only to wrap an external boundary; add an interface only for an
+- Wrap external boundaries in adapter layers; add an interface only for an
   alternative implementation or a genuine testing need. Never add empty layers
   or interfaces for plain CRUD.
 
@@ -282,7 +282,7 @@ Top-level buckets:
 | Role | Go | Flutter |
 |------|----|---------|
 | Entry / composition root | `cmd/<binary>/main.go` | `lib/app/` + `main_*.dart` |
-| `core` — own foundation (we build/operate it) | `internal/core/` | `lib/core/` |
+| `core` — our foundation and primary datastore | `internal/core/` | `lib/core/` |
 | `platform` — third-party SaaS adapters (SDK types stop here) | `internal/platform/` | `lib/platform/` |
 | Features | `internal/<feature>/` | `lib/features/<feature>/` |
 
