@@ -286,13 +286,15 @@ Top-level buckets:
 | `platform` — third-party SaaS adapters (SDK types stop here) | `internal/platform/` | `lib/platform/` |
 | Features | `internal/<feature>/` | `lib/features/<feature>/` |
 
-Classification: our own foundation and primary datastore → `core` (config,
-logging, HTTP server/client, and PostgreSQL via `database/sql`/pgx — self-hosted
-or managed alike, since it is our datastore, not who operates it, that decides);
-a third-party SaaS product wrapped so its SDK/API types stop at the boundary →
-`platform` (Firebase auth, RevenueCat, Stripe, R2, FCM). A portable wire
-protocol alone does not pull a service into `core`: R2 speaks the S3 API but is
-a hosted delivery boundary, so it stays in `platform`. `platform/*` may depend
+Classification: generic infrastructure reached through a standard
+driver/protocol → `core` (config, logging, HTTP server/client, and PostgreSQL
+via `database/sql`/pgx — self-hosted or managed alike); a specific third-party
+product reached through its own API/SDK → `platform`, which stops those SDK
+types at the boundary (Firebase auth, RevenueCat, Stripe, R2, FCM). The test is
+whether swapping providers would change the code, not who operates the server: a
+plain pgx DSN would not (→ `core`), but a provider-specific connector or SDK
+would (→ `platform`) — the Cloud SQL Go Connector or Supabase client even in
+front of Postgres, and the S3 SDK for R2 object delivery. `platform/*` may depend
 on `core/*`, never the reverse. Both hold descriptively-named leaf packages
 (`core/config`, `platform/stripe`), so the wrapper directory is organizational
 only, not a `util`/`common` grab-bag. Go idiom would drop the wrapper and place
