@@ -212,8 +212,42 @@ Deviate only with a concrete reason.
   authorize in the application layer.
 - Payments: Apple/Google IAP for in-app digital content, Stripe for web
   contracts, RevenueCat for entitlements.
-- Config: TOML, precedence defaults → TOML → env → flags; secrets in env vars,
-  Docker secrets, or a Secret Manager, never in TOML or Git.
+- Secrets
+  - Use Bitwarden Secrets Manager as the default system of record for personal
+    and small projects that are not tied to a single managed platform. Its
+    managed, end-to-end, zero-knowledge design keeps secret values unreadable to
+    the provider.
+  - Prefer a platform-native secret manager when a workload runs entirely on one
+    managed platform and native workload identity removes the need for a
+    long-lived bootstrap credential. For example, prefer Google Secret Manager
+    with a dedicated Cloud Run service identity for a Cloud Run-only workload.
+  - Choose another cross-platform solution only for a concrete requirement such
+    as federated workload authentication, automated rotation or dynamic secrets,
+    self-hosting, or compliance. Do not operate Vault or a similar system merely
+    to store static secrets for a small project.
+  - Keep one system of record for each secret. Commit only secret names,
+    references, or IDs; never commit secret values, workload access tokens, or
+    rendered configuration containing secrets.
+  - Use machine or workload identities, not human accounts, for applications and
+    automation. Separate identities at real permission boundaries such as
+    applications and environments, and grant least-privilege access.
+  - Retrieve secrets at runtime through the manager's official CLI, SDK, or
+    platform integration, then inject them using environment variables, Docker
+    secrets, or the runtime's native secret mechanism. Do not persist fetched
+    values to the repository or local configuration files.
+  - Treat manager credentials such as `BWS_ACCESS_TOKEN` as bootstrap secrets:
+    inject them from a protected host or CI credential store, never place them in
+    dotfiles or command-line arguments, and revoke or rotate them when exposure
+    is suspected.
+- Config
+  - Use TOML as the primary source of non-secret application configuration.
+  - Add environment-variable overrides only for values selected at deployment
+    or runtime, such as the listening port or an externally assigned endpoint.
+    Add flags only for CLI options or genuine one-off operational overrides. Do
+    not expose every TOML setting through every configuration mechanism.
+  - When the same option has multiple sources, use the precedence order defaults
+    → TOML → env → flags. Keep secrets out of TOML and Git, and follow the
+    Secrets policy above for storage and runtime injection.
 
 #### Deploy ladder
 
