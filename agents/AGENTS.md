@@ -288,24 +288,25 @@ Top-level buckets:
 
 Classification runs on two axes applied in order — ownership, then neutrality:
 
-1. Used by one feature only? → keep it there (`internal/<feature>/`,
+1. Owned by a single feature? → keep it there (`internal/<feature>/`,
    `lib/features/<feature>/`) as that feature's data adapter. A Stripe
    integration only `payments` uses starts in `internal/payments/`, not
    `platform/`.
 2. Shared and provider-neutral? → `core` (config, logging, HTTP server/client,
    DB pool/transaction helpers over `database/sql`/pgx, an S3-compatible
-   `objectstore`). PostgreSQL is neutral, so it is `core` self-hosted or managed
-   alike.
+   `objectstore`). The pgx connection is deployment-provider-neutral, so
+   PostgreSQL is `core` self-hosted or managed alike.
 3. Shared and provider-specific? → `platform`, which stops the
    provider-specific types (SDK objects or HTTP DTOs) at the boundary (Firebase
    auth, RevenueCat, Stripe, FCM, a Cloudflare/R2-specific API). Calling Stripe
    over raw HTTP is still Stripe-specific, so transport does not change this.
 4. Wiring implementations together? → `cmd/<binary>/main.go`, `lib/app/`.
 
-The neutrality test is whether swapping providers changes the code or only
-config: a plain pgx DSN or an endpoint-configured S3 client changes only config
-(→ `core`); a provider-specific connector or API changes code (→ `platform`,
-e.g. the Cloud SQL Go Connector in front of Postgres, or R2's Cloudflare API).
+The neutrality test is what swapping providers touches: if only config (a DSN,
+an endpoint, credentials) changes while the feature/application code and the
+exposed contract stay put, it is neutral (→ `core`); if the calling code or the
+public contract must change, it is provider-specific (→ `platform`, e.g. the
+Cloud SQL Go Connector in front of Postgres, or R2's Cloudflare API).
 `platform/*` may depend on `core/*`, never the reverse. Both hold
 descriptively-named leaf packages (`core/config`, `platform/stripe`), so the
 wrapper directory is organizational only, not a `util`/`common` grab-bag. Go
