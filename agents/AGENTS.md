@@ -282,26 +282,36 @@ Top-level buckets:
 | Role | Go | Flutter |
 |------|----|---------|
 | Entry / composition root | `cmd/<binary>/main.go` | `lib/app/` + `main_*.dart` |
-| `core` — our foundation and primary datastore | `internal/core/` | `lib/core/` |
-| `platform` — third-party SaaS adapters (SDK types stop here) | `internal/platform/` | `lib/platform/` |
+| `core` — shared, provider-neutral technical foundations | `internal/core/` | `lib/core/` |
+| `platform` — shared, provider-specific integrations (SDK types stop here) | `internal/platform/` | `lib/platform/` |
 | Features | `internal/<feature>/` | `lib/features/<feature>/` |
 
-Classification: generic infrastructure reached through a standard
-driver/protocol → `core` (config, logging, HTTP server/client, and PostgreSQL
-via `database/sql`/pgx — self-hosted or managed alike); a specific third-party
-product reached through its own API/SDK → `platform`, which stops those SDK
-types at the boundary (Firebase auth, RevenueCat, Stripe, R2, FCM). The test is
-whether swapping providers would change the code, not who operates the server: a
-plain pgx DSN would not (→ `core`), but a provider-specific connector or SDK
-would (→ `platform`) — the Cloud SQL Go Connector or Supabase client even in
-front of Postgres, and the S3 SDK for R2 object delivery. `platform/*` may depend
-on `core/*`, never the reverse. Both hold descriptively-named leaf packages
-(`core/config`, `platform/stripe`), so the wrapper directory is organizational
-only, not a `util`/`common` grab-bag. Go idiom would drop the wrapper and place
-these directly under `internal/`; keep the wrapper for cross-language
-correspondence. In Flutter, third-party SDK wrappers usually live in a feature's
-`data/` layer, so `lib/platform/` is thin — add a shared `lib/platform/<service>/`
-only when an integration is genuinely app-wide.
+Classification runs on two axes applied in order — ownership, then neutrality:
+
+1. Used by one feature only? → keep it there (`internal/<feature>/`,
+   `lib/features/<feature>/`) as that feature's data adapter. A Stripe
+   integration only `payments` uses starts in `internal/payments/`, not
+   `platform/`.
+2. Shared and provider-neutral? → `core` (config, logging, HTTP server/client,
+   DB pool/transaction helpers over `database/sql`/pgx, an S3-compatible
+   `objectstore`). PostgreSQL is neutral, so it is `core` self-hosted or managed
+   alike.
+3. Shared and provider-specific? → `platform`, which stops the SDK types at the
+   boundary (Firebase auth, RevenueCat, Stripe, FCM, a Cloudflare/R2-specific
+   API).
+4. Wiring implementations together? → `cmd/<binary>/main.go`, `lib/app/`.
+
+The neutrality test is whether swapping providers changes the code or only
+config: a plain pgx DSN or an endpoint-configured S3 client changes only config
+(→ `core`); a provider-specific connector or API changes code (→ `platform`,
+e.g. the Cloud SQL Go Connector in front of Postgres, or R2's Cloudflare API).
+`platform/*` may depend on `core/*`, never the reverse. Both hold
+descriptively-named leaf packages (`core/config`, `platform/stripe`), so the
+wrapper directory is organizational only, not a `util`/`common` grab-bag. Go
+idiom would drop the wrapper and place these directly under `internal/`; keep
+the wrapper for cross-language correspondence. The ownership axis keeps
+`lib/platform/` thin in Flutter, where SDK wrappers usually sit in a feature's
+`data/` layer.
 
 Feature-internal layers (Go groups roles as files in one package; Flutter as
 subfolders):
