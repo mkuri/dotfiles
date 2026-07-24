@@ -283,7 +283,7 @@ Top-level buckets:
 |------|----|---------|
 | Entry / composition root | `cmd/<binary>/main.go` | `lib/app/` + `main_*.dart` |
 | `core` — shared, provider-neutral technical foundations | `internal/core/` | `lib/core/` |
-| `platform` — shared, provider-specific integrations (SDK types stop here) | `internal/platform/` | `lib/platform/` |
+| `platform` — shared, provider-specific integrations (their SDK/DTO types stop here) | `internal/platform/` | `lib/platform/` |
 | Features | `internal/<feature>/` | `lib/features/<feature>/` |
 
 Classification runs on two axes applied in order — ownership, then neutrality:
@@ -296,9 +296,10 @@ Classification runs on two axes applied in order — ownership, then neutrality:
    DB pool/transaction helpers over `database/sql`/pgx, an S3-compatible
    `objectstore`). PostgreSQL is neutral, so it is `core` self-hosted or managed
    alike.
-3. Shared and provider-specific? → `platform`, which stops the SDK types at the
-   boundary (Firebase auth, RevenueCat, Stripe, FCM, a Cloudflare/R2-specific
-   API).
+3. Shared and provider-specific? → `platform`, which stops the
+   provider-specific types (SDK objects or HTTP DTOs) at the boundary (Firebase
+   auth, RevenueCat, Stripe, FCM, a Cloudflare/R2-specific API). Calling Stripe
+   over raw HTTP is still Stripe-specific, so transport does not change this.
 4. Wiring implementations together? → `cmd/<binary>/main.go`, `lib/app/`.
 
 The neutrality test is whether swapping providers changes the code or only
