@@ -79,14 +79,14 @@
     ],
     "Notification": [
       {
+        "matcher": "idle_prompt",
         "hooks": [
           {
             "type": "command",
             "command": "python3 \"$HOME/projects/agent-status-bar/session-state-recorder/record-session-state.py\"",
             "timeout": 5
           }
-        ],
-        "matcher": "idle_prompt"
+        ]
       }
     ],
     "SessionEnd": [
