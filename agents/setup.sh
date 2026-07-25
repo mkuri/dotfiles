@@ -1,5 +1,5 @@
 #!/bin/sh
-# Install shared and tool-specific AI agent configuration with symlinks.
+# Install shared and tool-specific AI agent configuration.
 
 set -u
 
@@ -70,6 +70,24 @@ prepare_claude_rules_dir() {
   ensure_dir "$rules_dir"
 }
 
+sync_codex_config() {
+  target_path=$TARGET_HOME/.codex/config.toml
+
+  ensure_dir "$(dirname -- "$target_path")" || return 1
+  python3 "$DOTFILES_DIR/codex/sync_config.py" \
+    --apply \
+    --target "$target_path"
+}
+
+sync_codex_hooks() {
+  target_path=$TARGET_HOME/.codex/hooks.json
+
+  ensure_dir "$(dirname -- "$target_path")" || return 1
+  python3 "$DOTFILES_DIR/codex/sync_hooks.py" \
+    --apply \
+    --target "$target_path"
+}
+
 # Shared instructions.
 link_path "$DOTFILES_DIR/agents/AGENTS.md" "$TARGET_HOME/.codex/AGENTS.md" || setup_status=1
 link_path "$DOTFILES_DIR/agents/AGENTS.md" "$TARGET_HOME/.claude/CLAUDE.md" || setup_status=1
@@ -80,6 +98,12 @@ else
   setup_status=1
 fi
 link_path "$DOTFILES_DIR/agents/AGENTS.md" "$TARGET_HOME/.gemini/GEMINI.md" || setup_status=1
+
+# Codex-specific configuration.
+sync_codex_config || setup_status=1
+sync_codex_hooks || setup_status=1
+link_path "$DOTFILES_DIR/codex/hooks/pre_tool_use.py" \
+  "$TARGET_HOME/.codex/hooks/pre_tool_use.py" || setup_status=1
 
 # Claude Code-specific configuration.
 link_path "$DOTFILES_DIR/claude/settings.json" "$TARGET_HOME/.claude/settings.json" || setup_status=1
