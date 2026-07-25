@@ -79,6 +79,20 @@ Never commit directly to `main` or `master`. Before staging or committing:
 
 This applies to code, documentation, configuration, and rules without exception.
 
+### Invoking shell commands with `cd`
+
+Don't put `cd <dir> &&` in a compound command that also runs `git` or redirects
+output (`>`, `2>`, ...). Both trip safety gates that allow-rules can't suppress
+(`cd` hides the real target from the permission analyzer; `git` may run the
+target repo's hooks), forcing an approval prompt every time — subagents too.
+
+Make the target explicit instead: `grep -rn X /abs/path`, `git -C <dir> <cmd>`,
+or split into separate calls. Plain `cd <dir> && <cmd>` with no `git` and no
+redirection (e.g. `cd app && flutter build`) is fine.
+
+Only rewrite for directories you trust. When `git` points at an untrusted or
+unknown repo, keep the prompt — hook execution is a real hazard there.
+
 ## Sensitive Files
 
 Never read or display the contents of:
