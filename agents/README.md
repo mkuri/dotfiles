@@ -23,7 +23,6 @@ The installer creates these links without replacing unrelated existing files:
 ~/.claude/keybindings.json                   -> claude/keybindings.json
 ~/.claude/hooks                              -> claude/hooks
 ~/.codex/AGENTS.md                           -> agents/AGENTS.md
-~/.codex/hooks.json                          -> codex/hooks.json
 ~/.codex/hooks/pre_tool_use.py               -> codex/hooks/pre_tool_use.py
 ~/.gemini/GEMINI.md                          -> agents/AGENTS.md
 ~/.gemini/config/hooks.json                  -> antigravity/config/hooks.json
@@ -36,6 +35,11 @@ unmanaged key and avoiding a rewrite when the managed values already match.
 It also migrates the legacy dotfiles symlink to a regular file without changing
 the symlink source.
 
+`~/.codex/hooks.json` is also kept as a regular local file. The installer merges
+only the dotfiles-owned hooks from `codex/managed-hooks.json`, preserving hooks
+registered by tools such as agent-status-bar. The hook synchronizer is
+idempotent and uses an atomic replacement only when the managed entries change.
+
 Check for drift without changing the local file:
 
 ```sh
@@ -46,6 +50,13 @@ Apply the managed settings directly:
 
 ```sh
 python3 codex/sync_config.py --apply
+```
+
+Check or apply the managed hooks directly:
+
+```sh
+python3 codex/sync_hooks.py --check
+python3 codex/sync_hooks.py --apply
 ```
 
 Antigravity uses the `~/.gemini` paths even though its files use the

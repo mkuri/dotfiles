@@ -79,6 +79,15 @@ sync_codex_config() {
     --target "$target_path"
 }
 
+sync_codex_hooks() {
+  target_path=$TARGET_HOME/.codex/hooks.json
+
+  ensure_dir "$(dirname -- "$target_path")" || return 1
+  python3 "$DOTFILES_DIR/codex/sync_hooks.py" \
+    --apply \
+    --target "$target_path"
+}
+
 # Shared instructions.
 link_path "$DOTFILES_DIR/agents/AGENTS.md" "$TARGET_HOME/.codex/AGENTS.md" || setup_status=1
 link_path "$DOTFILES_DIR/agents/AGENTS.md" "$TARGET_HOME/.claude/CLAUDE.md" || setup_status=1
@@ -92,7 +101,7 @@ link_path "$DOTFILES_DIR/agents/AGENTS.md" "$TARGET_HOME/.gemini/GEMINI.md" || s
 
 # Codex-specific configuration.
 sync_codex_config || setup_status=1
-link_path "$DOTFILES_DIR/codex/hooks.json" "$TARGET_HOME/.codex/hooks.json" || setup_status=1
+sync_codex_hooks || setup_status=1
 link_path "$DOTFILES_DIR/codex/hooks/pre_tool_use.py" \
   "$TARGET_HOME/.codex/hooks/pre_tool_use.py" || setup_status=1
 
