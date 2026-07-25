@@ -21,13 +21,8 @@ writing in Japanese is a defect, not a stylistic choice.
 
 ### What Stays in English
 
-This conversational rule does not override the English-only requirement for
-content committed to git or visible on GitHub:
-
-- Commit messages, pull request and issue text, and review comments
-- Source code, code comments, docstrings, and identifiers
-- Committed Markdown documents, specifications, READMEs, and design documents
-
+This conversational rule never overrides the English-only requirement for
+content committed to git or shown on GitHub (see GitHub Conventions → Language).
 Code snippets, commands, file paths, and technical identifiers stay in their
 original form even inside explanations in another language.
 
@@ -272,6 +267,77 @@ textbook clean architecture. The last rule below is the distinctive one.
   layers.
 - The domain layer references no web framework, DB driver, or cloud SDK; wrap
   external services at the boundary.
-- Add a layer or an interface only for a real reason: an alternative
-  implementation, an external boundary, or a genuine testing need. Never add
-  empty layers or interfaces for plain CRUD.
+- Wrap external boundaries in adapter layers; add an interface only for an
+  alternative implementation or a genuine testing need. Never add empty layers
+  or interfaces for plain CRUD.
+
+### Naming & Directory Structure
+
+One clean-architecture-inspired layout across Go and Flutter, so layers
+correspond by role. Apply it opportunistically as code is touched, not as a
+big-bang rename.
+
+Top-level buckets:
+
+| Role | Go | Flutter |
+|------|----|---------|
+| Entry / composition root | `cmd/<binary>/main.go` | `lib/app/` + `main_*.dart` |
+| `core` — shared, provider-neutral technical foundations | `internal/core/` | `lib/core/` |
+| `platform` — shared, provider-specific integrations (their SDK/DTO types stop here) | `internal/platform/` | `lib/platform/` |
+| Features | `internal/<feature>/` | `lib/features/<feature>/` |
+
+Classification runs on two axes applied in order — ownership, then neutrality:
+
+1. Owned by a single feature? → keep it there (`internal/<feature>/`,
+   `lib/features/<feature>/`) as that feature's data adapter. A Stripe
+   integration only `payments` uses starts in `internal/payments/`, not
+   `platform/`.
+2. Shared and provider-neutral? → `core` (config, logging, HTTP server/client,
+   DB pool/transaction helpers over `database/sql`/pgx, an S3-compatible
+   `objectstore`). The pgx connection is deployment-provider-neutral, so
+   PostgreSQL is `core` self-hosted or managed alike.
+3. Shared and provider-specific? → `platform`, which stops the
+   provider-specific types (SDK objects or HTTP DTOs) at the boundary (Firebase
+   auth, RevenueCat, Stripe, FCM, a Cloudflare/R2-specific API). Calling Stripe
+   over raw HTTP is still Stripe-specific, so transport does not change this.
+4. Wiring implementations together? → `cmd/<binary>/main.go`, `lib/app/`.
+
+The neutrality test is what swapping providers touches: if only config (a DSN,
+an endpoint, credentials) changes while the feature/application code and the
+exposed contract stay put, it is neutral (→ `core`); if the calling code or the
+public contract must change, it is provider-specific (→ `platform`, e.g. the
+Cloud SQL Go Connector in front of Postgres, or R2's Cloudflare API).
+`platform/*` may depend on `core/*`, never the reverse. Both hold
+descriptively-named leaf packages (`core/config`, `platform/stripe`), so the
+wrapper directory is organizational only, not a `util`/`common` grab-bag. Go
+idiom would drop the wrapper and place these directly under `internal/`; keep
+the wrapper for cross-language correspondence. The ownership axis keeps
+`lib/platform/` thin in Flutter, where SDK wrappers usually sit in a feature's
+`data/` layer.
+
+Feature-internal layers (Go groups roles as files in one package; Flutter as
+subfolders):
+
+| Layer | Go `internal/<f>/` | Flutter `lib/features/<f>/` |
+|-------|--------------------|-----------------------------|
+| domain (models + pure rules) | `domain.go` | `domain/<model>.dart` |
+| application (use-case, orchestration, authz, tx boundary) | `service.go` (`Service`) | `application/<use_case>.dart` |
+| data (outbound I/O adapter) | `store.go` (`Store`) | `data/<model>_repository.dart` + `data/<name>_dto.dart` |
+| inbound adapter | `handler.go` (`Handler`, HTTP) | `ui/<screen>_screen.dart` + `<screen>_view_model.dart` + `widgets/` |
+
+- In Go these layers are a file-and-naming convention within one package, not a
+  compile-time boundary: domain purity is enforced by naming and review, not the
+  compiler. Deliberate lightweight trade-off; split the roles into subpackages
+  when a feature genuinely needs compile-time isolation.
+- The Flutter UI class is `*ViewModel` in `ui/` (Riverpod does not force a
+  `Controller` name; the notifier class is named freely).
+- DTOs are separate files that mirror the HTTP contract (not DB rows); the
+  repository maps DTO ↔ domain, and domain never imports DTOs.
+- The `Store`/repository is itself the external-boundary layer, so by the
+  Architecture rules it needs no interface in front of it by default. Add one
+  only for a second implementation or a real testing need — rare in Flutter
+  (provider overrides cover tests); in Go prefer integration tests against a real
+  DB, adding an interface only when injectable fakes are truly needed.
+- The inbound layer is optional: a Go feature used only by the worker/another
+  service has no `handler.go`; a Flutter feature with no route of its own has
+  `ui/widgets/` as its largest unit and no `*_screen.dart`.
