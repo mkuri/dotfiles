@@ -5,19 +5,10 @@
 ### Conversational Language
 
 Match the language the user writes in. When the user communicates in Japanese,
-respond and explain in Japanese. Do not drift to English partway through.
-
-This applies especially to implementation and design discussions shown in the
-terminal:
-
-- Explanations of what a change does and why
-- Trade-off analysis, options, and recommendations
-- Debugging reasoning and root-cause explanations
-- Summaries of completed work and next steps
-- Clarifying questions
-
-Explaining an entire implementation discussion in English when the user is
-writing in Japanese is a defect, not a stylistic choice.
+respond and explain in Japanese, and do not drift to English partway through.
+This applies to terminal-shown implementation and design discussion too —
+change rationale, trade-offs, debugging reasoning, completion summaries, and
+clarifying questions — not only casual chat.
 
 ### What Stays in English
 
