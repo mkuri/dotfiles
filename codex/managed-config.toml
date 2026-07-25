@@ -1,0 +1,59 @@
+approval_policy = "on-request"
+approvals_reviewer = "user"
+default_permissions = "development"
+web_search = "live"
+
+[shell_environment_policy]
+inherit = "core"
+ignore_default_excludes = false
+
+[permissions.development]
+description = "Workspace development with public network access and secret-file protection."
+extends = ":workspace"
+
+[permissions.development.filesystem]
+glob_scan_max_depth = 6
+"~/.ssh" = "deny"
+"~/.gnupg" = "deny"
+"~/.aws" = "deny"
+"~/.kube" = "deny"
+"~/.config/gcloud" = "deny"
+"~/.config/doctl" = "deny"
+"~/.config/gh" = "deny"
+
+[permissions.development.filesystem.":workspace_roots"]
+".env" = "deny"
+".env.*" = "deny"
+"**/.env" = "deny"
+"**/.env.*" = "deny"
+"*.jks" = "deny"
+"**/*.jks" = "deny"
+"*.keystore" = "deny"
+"**/*.keystore" = "deny"
+"key.properties" = "deny"
+"**/key.properties" = "deny"
+"*.pem" = "deny"
+"**/*.pem" = "deny"
+"*.key" = "deny"
+"**/*.key" = "deny"
+".npmrc" = "deny"
+"**/.npmrc" = "deny"
+".pypirc" = "deny"
+"**/.pypirc" = "deny"
+".netrc" = "deny"
+"**/.netrc" = "deny"
+"*credentials*.json" = "deny"
+"**/*credentials*.json" = "deny"
+"*service-account*.json" = "deny"
+"**/*service-account*.json" = "deny"
+"*service_account*.json" = "deny"
+"**/*service_account*.json" = "deny"
+
+[permissions.development.network]
+enabled = true
+
+[permissions.development.network.domains]
+"*" = "allow"
+"localhost" = "allow"
+"127.0.0.1" = "allow"
+"::1" = "allow"

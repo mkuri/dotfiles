@@ -6,7 +6,7 @@ directories:
 
 - `claude/`: Claude Code settings, hooks, keybindings, and Claude-only rules
 - `antigravity/`: Antigravity hooks and other product-specific configuration
-- `codex/`: Add this directory when Codex-specific configuration is needed
+- `codex/`: Codex managed permissions, config synchronizer, and approval hooks
 
 Run the installer from anywhere:
 
@@ -23,8 +23,29 @@ The installer creates these links without replacing unrelated existing files:
 ~/.claude/keybindings.json                   -> claude/keybindings.json
 ~/.claude/hooks                              -> claude/hooks
 ~/.codex/AGENTS.md                           -> agents/AGENTS.md
+~/.codex/hooks.json                          -> codex/hooks.json
+~/.codex/hooks/pre_tool_use.py               -> codex/hooks/pre_tool_use.py
 ~/.gemini/GEMINI.md                          -> agents/AGENTS.md
 ~/.gemini/config/hooks.json                  -> antigravity/config/hooks.json
+```
+
+`~/.codex/config.toml` remains a regular local file because Codex updates
+machine-specific and dynamic state in it. The installer idempotently merges
+only the settings owned by `codex/managed-config.toml`, preserving every
+unmanaged key and avoiding a rewrite when the managed values already match.
+It also migrates the legacy dotfiles symlink to a regular file without changing
+the symlink source.
+
+Check for drift without changing the local file:
+
+```sh
+python3 codex/sync_config.py --check
+```
+
+Apply the managed settings directly:
+
+```sh
+python3 codex/sync_config.py --apply
 ```
 
 Antigravity uses the `~/.gemini` paths even though its files use the
@@ -36,3 +57,25 @@ real home directory:
 ```sh
 AGENT_CONFIG_HOME=/tmp/agent-home ./agents/setup.sh
 ```
+
+## Codex permission policy
+
+The Codex profile allows routine workspace edits, public network access, live
+web search, and local development endpoints without approval. It denies access
+to common secret-file patterns and credential directories.
+
+The `PreToolUse` hook requires an explicit Codex approval before destructive
+local commands, external writes through supported CLIs, remote deployments,
+and Homebrew changes. Current Codex hooks cannot directly return an `ask`
+decision, so the hook blocks an unapproved first attempt and instructs Codex to
+retry the exact command with escalated permissions. That retry uses the normal
+user approval prompt.
+
+After installing or changing the hook, open `/hooks` in Codex and trust the
+reviewed hook definition. Restart Codex after changing `config.toml`.
+
+Connector permissions are managed separately from these local files. Use the
+global **Any changes** setting so connector reads run automatically while
+external writes require approval. Browser reads and localhost implementation
+checks can run automatically; submitting data or changing an external site
+should remain interactive.
