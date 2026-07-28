@@ -233,6 +233,9 @@ main() {
 
   TOTAL_FREED_BYTES=0
 
+  local df_before_kb
+  df_before_kb=$(df -k / | awk 'NR==2 {print $4}')
+
   echo ""
   echo "Interactive cleanup (each item asks before doing anything):"
 
@@ -251,6 +254,16 @@ main() {
         ;;
     esac
   done
+
+  local df_after_kb
+  df_after_kb=$(df -k / | awk 'NR==2 {print $4}')
+
+  echo ""
+  echo "Summary:"
+  echo "  Freed (tracked by this script): $(bytes_to_human "$TOTAL_FREED_BYTES")"
+  echo "  Free space before: $(bytes_to_human $(( df_before_kb * 1024 )))"
+  echo "  Free space after:  $(bytes_to_human $(( df_after_kb * 1024 )))"
+  echo "  (If you ran a Docker prune step, its own reclaimed-space total is printed above and is not included in 'Freed'.)"
 }
 
 main "$@"
