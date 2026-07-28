@@ -49,8 +49,10 @@ run_ios_device_support() {
     [[ -n "$dirname" ]] && versions+=("$dirname")
   done < <(find "$path" -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
 
-  local candidates
-  candidates=$(printf '%s\n' "${versions[@]}" | ios_device_support_candidates)
+  local candidates=""
+  if (( ${#versions[@]} > 0 )); then
+    candidates=$(printf '%s\n' "${versions[@]}" | ios_device_support_candidates)
+  fi
 
   echo ""
   echo "  iOS DeviceSupport — keeping the 2 most recent versions automatically."
@@ -60,9 +62,14 @@ run_ios_device_support() {
     return
   fi
 
-  local version version_path before_kb before_bytes answer decision
+  local candidates_list=() version
   while IFS= read -r version; do
-    [[ -z "$version" ]] && continue
+    [[ -n "$version" ]] && candidates_list+=("$version")
+  done <<< "$candidates"
+
+  local i version_path before_kb before_bytes answer decision
+  for (( i = 0; i < ${#candidates_list[@]}; i++ )); do
+    version="${candidates_list[$i]}"
     version_path="$path/$version"
     before_kb=$(du -sk "$version_path" 2>/dev/null | awk '{print $1}')
     before_bytes=$(( before_kb * 1024 ))
@@ -79,7 +86,7 @@ run_ios_device_support() {
     rm -rf "$version_path"
     echo "  Freed $(bytes_to_human "$before_bytes")."
     TOTAL_FREED_BYTES=$(( TOTAL_FREED_BYTES + before_bytes ))
-  done <<< "$candidates"
+  done
 }
 
 run_generic_target() {
