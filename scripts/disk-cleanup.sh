@@ -36,6 +36,52 @@ TARGETS=(
   "Android SDK|$HOME/Library/Android|report-only|||Android SDK/emulator images; out of scope, shown for visibility only."
 )
 
+run_ios_device_support() {
+  local path="$1"
+
+  if [[ ! -d "$path" ]]; then
+    echo "  Skipped: iOS DeviceSupport (path not found)"
+    return
+  fi
+
+  local versions=() dirname
+  while IFS= read -r dirname; do
+    [[ -n "$dirname" ]] && versions+=("$dirname")
+  done < <(find "$path" -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
+
+  local candidates
+  candidates=$(printf '%s\n' "${versions[@]}" | ios_device_support_candidates)
+
+  echo ""
+  echo "  iOS DeviceSupport — keeping the 2 most recent versions automatically."
+
+  if [[ -z "$candidates" ]]; then
+    echo "  No old versions to remove (2 or fewer present)."
+    return
+  fi
+
+  local version version_path before_kb before_bytes answer decision
+  while IFS= read -r version; do
+    [[ -z "$version" ]] && continue
+    version_path="$path/$version"
+    before_kb=$(du -sk "$version_path" 2>/dev/null | awk '{print $1}')
+    before_bytes=$(( before_kb * 1024 ))
+
+    echo "  $version — $(bytes_to_human "$before_bytes")"
+    read -r -p "  Delete this older version? [y/N] " answer
+    decision=$(parse_confirmation "$answer" "n")
+
+    if [[ "$decision" != "yes" ]]; then
+      echo "  Skipped."
+      continue
+    fi
+
+    rm -rf "$version_path"
+    echo "  Freed $(bytes_to_human "$before_bytes")."
+    TOTAL_FREED_BYTES=$(( TOTAL_FREED_BYTES + before_bytes ))
+  done <<< "$candidates"
+}
+
 run_generic_target() {
   local name="$1" path="$2" tier="$3" check_cmd="$4" clean_cmd="$5" note="$6"
 
@@ -133,9 +179,18 @@ main() {
 
   for i in "${ORDER[@]}"; do
     [[ "${TIERS[$i]}" == "report-only" ]] && continue
-    [[ -n "${HANDLERS[$i]}" ]] && continue
 
-    run_generic_target "${NAMES[$i]}" "${PATHS[$i]}" "${TIERS[$i]}" "${CHECK_CMDS[$i]}" "${CLEAN_CMDS[$i]}" "${NOTES[$i]}"
+    case "${HANDLERS[$i]}" in
+      ios_device_support)
+        run_ios_device_support "${PATHS[$i]}"
+        ;;
+      orbstack_docker)
+        continue
+        ;;
+      "")
+        run_generic_target "${NAMES[$i]}" "${PATHS[$i]}" "${TIERS[$i]}" "${CHECK_CMDS[$i]}" "${CLEAN_CMDS[$i]}" "${NOTES[$i]}"
+        ;;
+    esac
   done
 }
 
