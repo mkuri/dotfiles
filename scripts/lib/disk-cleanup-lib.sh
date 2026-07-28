@@ -42,7 +42,7 @@ parse_confirmation() {
   local input="$1"
   local default="$2"
   local normalized
-  normalized="$(echo "$input" | tr '[:upper:]' '[:lower:]')"
+  normalized="$(printf '%s' "$input" | tr '[:upper:]' '[:lower:]')"
 
   case "$normalized" in
     y|yes) echo "yes" ;;
@@ -61,7 +61,7 @@ parse_confirmation() {
 parse_strict_yes() {
   local input="$1"
   local normalized
-  normalized="$(echo "$input" | tr '[:upper:]' '[:lower:]')"
+  normalized="$(printf '%s' "$input" | tr '[:upper:]' '[:lower:]')"
   if [[ "$normalized" == "yes" ]]; then
     echo "yes"
   else
