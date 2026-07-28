@@ -37,3 +37,34 @@ ios_device_support_candidates() {
     echo "${names[$i]}"
   done
 }
+
+parse_confirmation() {
+  local input="$1"
+  local default="$2"
+  local normalized
+  normalized="$(echo "$input" | tr '[:upper:]' '[:lower:]')"
+
+  case "$normalized" in
+    y|yes) echo "yes" ;;
+    n|no) echo "no" ;;
+    "")
+      if [[ "$default" == "y" ]]; then
+        echo "yes"
+      else
+        echo "no"
+      fi
+      ;;
+    *) echo "no" ;;
+  esac
+}
+
+parse_strict_yes() {
+  local input="$1"
+  local normalized
+  normalized="$(echo "$input" | tr '[:upper:]' '[:lower:]')"
+  if [[ "$normalized" == "yes" ]]; then
+    echo "yes"
+  else
+    echo "no"
+  fi
+}

@@ -1,0 +1,13 @@
+assert_eq "yes" "$(parse_confirmation "y" "n")" "parse_confirmation: y"
+assert_eq "yes" "$(parse_confirmation "Y" "n")" "parse_confirmation: Y"
+assert_eq "yes" "$(parse_confirmation "yes" "n")" "parse_confirmation: yes"
+assert_eq "no" "$(parse_confirmation "n" "y")" "parse_confirmation: n"
+assert_eq "no" "$(parse_confirmation "no" "y")" "parse_confirmation: no"
+assert_eq "yes" "$(parse_confirmation "" "y")" "parse_confirmation: empty defaults to y"
+assert_eq "no" "$(parse_confirmation "" "n")" "parse_confirmation: empty defaults to n"
+assert_eq "no" "$(parse_confirmation "whatever" "y")" "parse_confirmation: garbage input is always no"
+
+assert_eq "yes" "$(parse_strict_yes "yes")" "parse_strict_yes: exact yes"
+assert_eq "yes" "$(parse_strict_yes "YES")" "parse_strict_yes: case-insensitive"
+assert_eq "no" "$(parse_strict_yes "y")" "parse_strict_yes: rejects short y"
+assert_eq "no" "$(parse_strict_yes "")" "parse_strict_yes: rejects empty"
