@@ -17,3 +17,23 @@ bytes_to_human() {
     }
   }'
 }
+
+ios_device_support_candidates() {
+  local keep=2
+  local names=()
+  local line
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && names+=("$line")
+  done < <(sort -V)
+
+  local total=${#names[@]}
+  if (( total <= keep )); then
+    return 0
+  fi
+
+  local cutoff=$(( total - keep ))
+  local i
+  for (( i = 0; i < cutoff; i++ )); do
+    echo "${names[$i]}"
+  done
+}
