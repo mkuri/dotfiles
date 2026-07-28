@@ -36,6 +36,54 @@ TARGETS=(
   "Android SDK|$HOME/Library/Android|report-only|||Android SDK/emulator images; out of scope, shown for visibility only."
 )
 
+run_generic_target() {
+  local name="$1" path="$2" tier="$3" check_cmd="$4" clean_cmd="$5" note="$6"
+
+  if [[ -n "$check_cmd" ]] && ! bash -c "$check_cmd" &>/dev/null; then
+    echo "  Skipped: $name (requires: $check_cmd)"
+    return
+  fi
+
+  if [[ ! -e "$path" ]]; then
+    echo "  Skipped: $name (path not found)"
+    return
+  fi
+
+  local before_kb before_bytes
+  before_kb=$(du -sk "$path" 2>/dev/null | awk '{print $1}')
+  before_bytes=$(( before_kb * 1024 ))
+
+  local default="n"
+  [[ "$tier" == "auto-safe" ]] && default="y"
+  local prompt_hint="[y/N]"
+  [[ "$default" == "y" ]] && prompt_hint="[Y/n]"
+
+  echo ""
+  echo "  $name — $(bytes_to_human "$before_bytes")"
+  echo "  $note"
+  local answer
+  read -r -p "  Run cleanup? $prompt_hint " answer
+  local decision
+  decision=$(parse_confirmation "$answer" "$default")
+
+  if [[ "$decision" != "yes" ]]; then
+    echo "  Skipped."
+    return
+  fi
+
+  bash -c "$clean_cmd"
+
+  local after_kb after_bytes freed
+  after_kb=$(du -sk "$path" 2>/dev/null | awk '{print $1}')
+  after_kb=${after_kb:-0}
+  after_bytes=$(( after_kb * 1024 ))
+  freed=$(( before_bytes - after_bytes ))
+  (( freed < 0 )) && freed=0
+
+  echo "  Freed $(bytes_to_human "$freed")."
+  TOTAL_FREED_BYTES=$(( TOTAL_FREED_BYTES + freed ))
+}
+
 main() {
   local NAMES=() PATHS=() TIERS=() CHECK_CMDS=() CLEAN_CMDS=() NOTES=() HANDLERS=() SIZES_KB=()
 
@@ -76,6 +124,18 @@ main() {
   for i in "${ORDER[@]}"; do
     size_bytes=$(( SIZES_KB[i] * 1024 ))
     printf '%-10s  %-14s  %s\n' "$(bytes_to_human "$size_bytes")" "${TIERS[$i]}" "${NAMES[$i]}"
+  done
+
+  TOTAL_FREED_BYTES=0
+
+  echo ""
+  echo "Interactive cleanup (each item asks before doing anything):"
+
+  for i in "${ORDER[@]}"; do
+    [[ "${TIERS[$i]}" == "report-only" ]] && continue
+    [[ -n "${HANDLERS[$i]}" ]] && continue
+
+    run_generic_target "${NAMES[$i]}" "${PATHS[$i]}" "${TIERS[$i]}" "${CHECK_CMDS[$i]}" "${CLEAN_CMDS[$i]}" "${NOTES[$i]}"
   done
 }
 
