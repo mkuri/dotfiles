@@ -89,6 +89,58 @@ run_ios_device_support() {
   done
 }
 
+run_orbstack_docker() {
+  local path="$1"
+
+  if ! command -v docker &>/dev/null; then
+    echo "  Skipped: OrbStack (Docker data) (docker command not found)"
+    return
+  fi
+
+  if ! docker info &>/dev/null; then
+    local answer decision
+    read -r -p "  OrbStack VM is stopped. Start it to inspect Docker data? Starting has its own overhead. [y/N] " answer
+    decision=$(parse_confirmation "$answer" "n")
+    if [[ "$decision" != "yes" ]]; then
+      echo "  Skipped."
+      return
+    fi
+
+    open -ga OrbStack
+    local waited=0
+    while ! docker info &>/dev/null && (( waited < 30 )); do
+      sleep 2
+      waited=$(( waited + 2 ))
+    done
+
+    if ! docker info &>/dev/null; then
+      echo "  OrbStack did not become ready within 30s; skipping."
+      return
+    fi
+  fi
+
+  echo ""
+  echo "  Docker disk usage:"
+  docker system df
+
+  local answer
+  read -r -p "  Run 'docker builder prune' (build cache only)? [y/N] " answer
+  if [[ "$(parse_confirmation "$answer" "n")" == "yes" ]]; then
+    docker builder prune -f
+  fi
+
+  echo ""
+  echo "  'docker system prune -a --volumes' removes ALL unused images,"
+  echo "  containers, and volumes for EVERY Docker project on this Mac,"
+  echo "  not just this one."
+  read -r -p "  Type the full word 'yes' to run it, anything else to skip: " answer
+  if [[ "$(parse_strict_yes "$answer")" == "yes" ]]; then
+    docker system prune -a --volumes -f
+  else
+    echo "  Skipped."
+  fi
+}
+
 run_generic_target() {
   local name="$1" path="$2" tier="$3" check_cmd="$4" clean_cmd="$5" note="$6"
 
@@ -192,7 +244,7 @@ main() {
         run_ios_device_support "${PATHS[$i]}"
         ;;
       orbstack_docker)
-        continue
+        run_orbstack_docker "${PATHS[$i]}"
         ;;
       "")
         run_generic_target "${NAMES[$i]}" "${PATHS[$i]}" "${TIERS[$i]}" "${CHECK_CMDS[$i]}" "${CLEAN_CMDS[$i]}" "${NOTES[$i]}"
