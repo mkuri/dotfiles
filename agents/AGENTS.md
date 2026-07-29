@@ -117,13 +117,77 @@ When information from a sensitive file is required:
 If sensitive data is read accidentally, do not reproduce it. Inform the user and
 recommend credential rotation if the data may have been exposed.
 
-## Plan Documents
+## Documentation and Work Tracking
+
+Use committed documentation for durable knowledge and GitHub Issues for work
+discovery, discussion, prioritization, and progress.
+
+### Source of Truth
+
+- `docs/architecture/overview.md` describes the current architecture.
+- `docs/designs/` records durable design decisions and their rationale.
+- GitHub Issues own actionable and accepted deferred work.
+- Pull requests describe and verify the resulting implementation.
+- Do not maintain a Markdown backlog that duplicates GitHub Issues.
+- A repository without an issue tracker may use `docs/future-work.md` as a
+  fallback, but must not maintain both systems for the same backlog.
+
+### Documentation Structure
+
+Use the following as the default structure for software repositories. Apply it
+incrementally and create directories only when they have real content; do not
+add empty placeholders.
+
+```text
+docs/
+├── index.md
+├── getting-started.md
+├── development/
+├── architecture/
+│   └── overview.md
+└── designs/
+```
+
+- Keep `README.md` as a concise repository entry point. Put detailed,
+  canonical development instructions under `docs/` and link to them.
+- Use `docs/index.md` as the documentation entry point.
+- Make `docs/getting-started.md` the shortest verified path from a fresh
+  checkout to a working local environment.
+- Put task-oriented development procedures such as testing, migrations, local
+  secret injection, and troubleshooting under `docs/development/`.
+- Keep `docs/architecture/overview.md` current and written in the present
+  tense. It describes the system as it exists now.
+- Keep permanent, dated design records under `docs/designs/`. They explain
+  decisions at a point in time and are not the source of truth for the current
+  architecture.
+- Add audience-oriented sections such as `guides/`, `reference/`, `api/`, or
+  `operations/` only when corresponding content exists.
+- Keep one canonical location for each instruction or fact. Link to it instead
+  of duplicating it across the README and documentation.
+- Prefer portable Markdown: lowercase kebab-case filenames, one H1 per
+  document, relative links with `.md` extensions, and no SSG-specific MDX or
+  components until a documentation framework is selected.
+- Organize documentation around reader needs and tasks rather than mirroring
+  source directories, except when product structure is itself the reference.
 
 ### Design Documents
 
 - Commit `*-design.md` documents to git, including when created by a
   brainstorming workflow.
-- Keep them permanently as records of design decisions.
+- Include, where applicable: status, date, context, goals, non-goals, decision,
+  alternatives, consequences, deferred work, and references.
+- Use a small status vocabulary such as `Draft`, `Proposed`, `Approved`,
+  `Superseded`, and `Rejected`.
+- Keep design documents permanently as records of decisions. Do not delete a
+  superseded design; mark it `Superseded` and link to its replacement.
+
+### When to Create a Design Document
+
+- Create a design document for substantial changes involving architecture,
+  data models or migrations, external services, security boundaries,
+  compatibility, rollout, or multiple meaningful implementation alternatives.
+- Small bugs, tests, maintenance tasks, and changes within an established
+  design need an issue but do not require a design document.
 
 ### Implementation Plans
 
@@ -131,6 +195,133 @@ recommend credential rotation if the data may have been exposed.
 - Use them only as working documents during implementation.
 - Remove them from the worktree during the development-branch finishing
   workflow.
+
+### GitHub Work Tracking
+
+#### Issue Classification
+
+Classify issues by their deliverable:
+
+- `type/design`: the deliverable is an approved design document and scoped
+  follow-up implementation issues.
+- `type/feature`: the deliverable is working product behavior.
+- `type/test`: the deliverable is automated test coverage or test
+  infrastructure.
+- `type/docs`: the deliverable is committed documentation.
+- `status/deferred`: the issue is accepted but must not be started until its
+  revisit trigger occurs.
+
+Determine an issue's workflow in this order:
+
+1. If it has `status/deferred`, do not start it.
+2. Otherwise, if it has `type/design`, follow the design workflow.
+3. Otherwise, follow the implementation workflow for its `type/` label.
+
+Priority and readiness are separate concerns. A priority label ranks work that
+can be scheduled; it does not replace `status/deferred` or `type/design`.
+
+#### Issue Body Structure
+
+Use this structure for `type/design` issues:
+
+```text
+## Context
+
+## Decision required
+
+## Design constraints
+
+## Deliverable
+```
+
+The deliverable must include:
+
+- an approved design document under `docs/designs/`;
+- links between the issue and design document;
+- scoped follow-up implementation issues when implementation is actionable.
+
+Use this structure for actionable `type/feature`, `type/test`, and `type/docs`
+issues:
+
+```text
+## Context
+
+## Scope
+
+## Acceptance criteria
+
+## Related design
+```
+
+Omit `Related design` only when no design document is required.
+
+Use this structure for issues with `status/deferred`:
+
+```text
+## Context
+
+## Why deferred
+
+## Revisit trigger
+
+## Durable constraints
+
+## Related design
+```
+
+When the revisit trigger occurs, remove `status/deferred` and decide whether
+the next deliverable is a design document or an implementation. Update the
+`type/` label accordingly before starting work.
+
+#### Small Changes
+
+1. Create an issue.
+2. Implement the change in a pull request.
+3. Link the pull request with a closing keyword such as `Closes #123`.
+
+#### Design Workflow
+
+1. Create a design discussion issue when discussion or tracking is useful.
+2. Write the design document under `docs/designs/`.
+3. Link the issue from the design document and the design document from the
+   issue.
+4. Close the design discussion issue when the decision is captured and
+   approved.
+5. Create a separate implementation issue or parent issue when implementation
+   becomes actionable.
+6. Break large implementation work into sub-issues.
+7. Link implementation pull requests to their issues with closing keywords.
+
+A design document does not require an implementation issue when no actionable
+implementation work exists.
+
+### Deferred Work
+
+- Create a GitHub Issue for every accepted deferred item worth remembering.
+- Apply `status/deferred` and appropriate `type/` and `area/` labels.
+- Do not assign a priority or milestone until it represents a real scheduling
+  decision. Priority and readiness are separate concerns.
+- State the context, reason for deferral, concrete revisit trigger, durable
+  constraints, and related design documents or issues.
+- A related design document may summarize the deferral, but must link to the
+  issue instead of duplicating its tracking state.
+- Use issue dependencies when the item depends on another tracked item.
+- Review `status/deferred` issues during milestone planning, major design work,
+  and periodic backlog maintenance.
+- Do not automatically close accepted deferred issues as stale.
+- When the revisit trigger occurs, remove `status/deferred`, refine the scope
+  and acceptance criteria, assign priority and a milestone when appropriate,
+  and create or update a design document if needed.
+- When the work is no longer desirable, close the issue as not planned and
+  record the reason.
+
+### Linking Responsibilities
+
+- Design documents own context, decisions, alternatives, consequences, and
+  durable constraints.
+- Issues own work state and planning metadata.
+- Pull requests own the implementation summary and verification evidence.
+- Link these artifacts instead of copying their content between them.
 
 ## Engineering Policy
 
