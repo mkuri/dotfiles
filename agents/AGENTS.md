@@ -447,6 +447,11 @@ not use wildcard ports.
   - Move to managed PostgreSQL when DB ops get heavy, PITR or frequent backups
     are needed, multiple people operate it, or data loss has significant business
     impact; typical choices include Supabase, Neon, or Cloud SQL.
+  - Self-hosted PostgreSQL: pgBackRest for base backups, WAL archiving, and PITR to
+    S3-compatible off-site storage. pgBackRest owns retention (don't delete by
+    object-lifecycle age); keep object-lock shorter than its retention; use async
+    archiving and set archive-push-queue-max with an alert (overflow drops WAL and
+    breaks the PITR chain). Rehearse restores.
 - Schema: Atlas by default, with the declarative schema as the source of truth;
   generate versioned SQL → lint/review → apply; never apply a declarative diff
   straight to production; make breaking changes gradually and forward-compatibly.
@@ -455,6 +460,8 @@ not use wildcard ports.
     hand keys to the client.
   - Backblaze B2 for backups: keep them off the DB's provider and test restores
     regularly.
+  - Test object-storage code against a local S3-compatible container (MinIO) in CI,
+    not real buckets/credentials/object-lock.
 - Auth: Firebase Authentication; verify the client-issued JWT in the backend, and
   authorize in the application layer.
 - Payments: Apple/Google IAP for in-app digital content, Stripe for web
@@ -482,6 +489,10 @@ not use wildcard ports.
     platform integration, then inject them using environment variables, Docker
     secrets, or the runtime's native secret mechanism. Do not persist fetched
     values to the repository or local configuration files.
+  - VPS/Compose: render secrets in CI at deploy from per-environment read-only
+    tokens (env-scoped CI secrets), deliver as Docker file-based secrets consumed
+    via `*_FILE`, restrict each to its UID, keep no plaintext env file on the host,
+    switch revisions atomically.
   - Treat manager credentials such as `BWS_ACCESS_TOKEN` as bootstrap secrets:
     inject them from a protected host or CI credential store, never place them in
     dotfiles or command-line arguments, and revoke or rotate them when exposure
@@ -508,6 +519,28 @@ Start cheap and private; move down the list only when the need arises.
   - Managed default (fits Flutter / Firebase Auth). Use AWS only when the
     team/customer is AWS-centric or an AWS-specific service is required.
 - DB ops too heavy: managed PostgreSQL (Supabase, Neon, Cloud SQL)
+
+#### CI/CD & deploy mechanics
+
+Container deploys to a private VPS:
+
+- Build images in CI (never on the VPS), pin to an immutable digest, and build once
+  → validate in staging → promote the same artifact to production.
+- Deploy from CI over Tailscale: an ephemeral OIDC runner joins the tailnet, so SSH
+  is never public (firewall SSH to the tailscale interface, pin the host key).
+- Gate migrations before recreating containers (one-shot, switch only on success;
+  expand-contract for rollback).
+- Switch a release and its secret revision together via one atomic manifest/symlink;
+  roll back by repointing it.
+- Serialize deploys (own concurrency group that queues, never cancels in-flight).
+
+#### Observability & alerting
+
+- Expose `/livez` (liveness) and `/readyz` (readiness incl. dependencies).
+- Vendor-neutral: structured stdout logs + Prometheus/OpenTelemetry-compatible
+  telemetry, no monitoring-vendor types in feature packages.
+- External monitor (uptime, TLS, heartbeats) + host provider metrics; email-first.
+- Alert per environment: production pages; non-production non-paging (dashboard-only).
 
 ### Architecture
 
