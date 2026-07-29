@@ -79,6 +79,15 @@ sync_codex_config() {
     --target "$target_path"
 }
 
+sync_claude_settings() {
+  target_path=$TARGET_HOME/.claude/settings.json
+
+  ensure_dir "$(dirname -- "$target_path")" || return 1
+  python3 "$DOTFILES_DIR/claude/sync_settings.py" \
+    --apply \
+    --target "$target_path"
+}
+
 # Shared instructions.
 link_path "$DOTFILES_DIR/agents/AGENTS.md" "$TARGET_HOME/.codex/AGENTS.md" || setup_status=1
 link_path "$DOTFILES_DIR/agents/AGENTS.md" "$TARGET_HOME/.claude/CLAUDE.md" || setup_status=1
@@ -94,7 +103,7 @@ link_path "$DOTFILES_DIR/agents/AGENTS.md" "$TARGET_HOME/.gemini/GEMINI.md" || s
 sync_codex_config || setup_status=1
 
 # Claude Code-specific configuration.
-link_path "$DOTFILES_DIR/claude/settings.json" "$TARGET_HOME/.claude/settings.json" || setup_status=1
+sync_claude_settings || setup_status=1
 link_path "$DOTFILES_DIR/claude/keybindings.json" "$TARGET_HOME/.claude/keybindings.json" || setup_status=1
 link_path "$DOTFILES_DIR/claude/hooks" "$TARGET_HOME/.claude/hooks" || setup_status=1
 
