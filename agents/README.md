@@ -4,7 +4,7 @@
 Code, Codex, and Antigravity. Product-specific settings remain in their own
 directories:
 
-- `claude/`: Claude Code settings, hooks, keybindings, and Claude-only rules
+- `claude/`: Claude Code shared settings, hooks, keybindings, and Claude-only rules
 - `antigravity/`: Antigravity hooks and other product-specific configuration
 - `codex/`: Codex permissions and configuration synchronizer
 
@@ -19,7 +19,6 @@ The installer creates these links without replacing unrelated existing files:
 ```text
 ~/.claude/CLAUDE.md                          -> agents/AGENTS.md
 ~/.claude/rules/sub-agent-model-policy.md    -> claude/rules/sub-agent-model-policy.md
-~/.claude/settings.json                      -> claude/settings.json
 ~/.claude/keybindings.json                   -> claude/keybindings.json
 ~/.claude/hooks                              -> claude/hooks
 ~/.codex/AGENTS.md                           -> agents/AGENTS.md
@@ -44,6 +43,20 @@ Apply the shared settings directly:
 
 ```sh
 python3 codex/sync_config.py --apply
+```
+
+`~/.claude/settings.json` is also kept as a regular local file. The installer
+merges only the portable plugin and marketplace settings from
+`claude/shared-settings.json`, preserving hooks, UI preferences, and every
+other local setting. It migrates the expected legacy dotfiles symlink without
+changing its source. The legacy `claude/settings.json` remains temporarily as
+the migration source and will be removed in a later cleanup.
+
+Check or apply the shared Claude settings directly:
+
+```sh
+python3 claude/sync_settings.py --check
+python3 claude/sync_settings.py --apply
 ```
 
 Antigravity uses the `~/.gemini` paths even though its files use the
