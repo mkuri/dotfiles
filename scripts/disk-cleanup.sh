@@ -72,6 +72,7 @@ run_ios_device_support() {
     version="${candidates_list[$i]}"
     version_path="$path/$version"
     before_kb=$(du -sk "$version_path" 2>/dev/null | awk '{print $1}')
+    before_kb=${before_kb:-0}
     before_bytes=$(( before_kb * 1024 ))
 
     echo "  $version — $(bytes_to_human "$before_bytes")"
@@ -84,8 +85,14 @@ run_ios_device_support() {
     fi
 
     rm -rf "$version_path"
-    echo "  Freed $(bytes_to_human "$before_bytes")."
-    TOTAL_FREED_BYTES=$(( TOTAL_FREED_BYTES + before_bytes ))
+    local after_kb after_bytes freed
+    after_kb=$(du -sk "$version_path" 2>/dev/null | awk '{print $1}')
+    after_kb=${after_kb:-0}
+    after_bytes=$(( after_kb * 1024 ))
+    freed=$(( before_bytes - after_bytes ))
+    (( freed < 0 )) && freed=0
+    echo "  Freed $(bytes_to_human "$freed")."
+    TOTAL_FREED_BYTES=$(( TOTAL_FREED_BYTES + freed ))
   done
 }
 
