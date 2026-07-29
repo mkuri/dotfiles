@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Merge dotfiles-owned Codex settings into the local user configuration."""
+"""Merge dotfiles-shared Codex settings into the local user configuration."""
 
 from __future__ import annotations
 
@@ -25,8 +25,10 @@ SHELL_ENVIRONMENT_KEYS = (
     "ignore_default_excludes",
 )
 PERMISSIONS_PREFIX = ("permissions", "development")
-BEGIN_MARKER = "# BEGIN dotfiles-managed Codex approval policy"
-END_MARKER = "# END dotfiles-managed Codex approval policy"
+BEGIN_MARKER = "# BEGIN dotfiles-shared Codex configuration"
+END_MARKER = "# END dotfiles-shared Codex configuration"
+LEGACY_BEGIN_MARKER = "# BEGIN dotfiles-managed Codex approval policy"
+LEGACY_END_MARKER = "# END dotfiles-managed Codex approval policy"
 MARKER_KEY = "__codex_dotfiles_sync_marker__"
 
 
@@ -39,7 +41,7 @@ class Section:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Synchronize dotfiles-owned settings into Codex config.toml."
+        description="Synchronize dotfiles-shared settings into Codex config.toml."
     )
     action = parser.add_mutually_exclusive_group(required=True)
     action.add_argument(
@@ -50,7 +52,7 @@ def parse_args() -> argparse.Namespace:
     action.add_argument(
         "--apply",
         action="store_true",
-        help="Apply managed settings while preserving all other local settings.",
+        help="Apply shared settings while preserving all other local settings.",
     )
     parser.add_argument(
         "--target",
@@ -59,10 +61,10 @@ def parse_args() -> argparse.Namespace:
         help="Codex user configuration to inspect or update.",
     )
     parser.add_argument(
-        "--managed",
+        "--shared",
         type=Path,
-        default=Path(__file__).with_name("managed-config.toml"),
-        help="TOML fragment containing the dotfiles-owned settings.",
+        default=Path(__file__).with_name("shared-config.toml"),
+        help="TOML fragment containing the dotfiles-shared settings.",
     )
     return parser.parse_args()
 
@@ -86,14 +88,14 @@ def get_path(data: dict[str, object], path: tuple[str, ...]) -> object:
     return current
 
 
-def validate_managed_config(data: dict[str, object]) -> None:
+def validate_shared_config(data: dict[str, object]) -> None:
     expected_top_level = set(TOP_LEVEL_KEYS) | {
         "shell_environment_policy",
         "permissions",
     }
     if set(data) != expected_top_level:
         raise ValueError(
-            "managed config must contain only the documented dotfiles-owned keys"
+            "shared config must contain only the documented dotfiles-owned keys"
         )
 
     shell_environment = data.get("shell_environment_policy")
@@ -101,17 +103,17 @@ def validate_managed_config(data: dict[str, object]) -> None:
         SHELL_ENVIRONMENT_KEYS
     ):
         raise ValueError(
-            "managed shell_environment_policy contains unexpected or missing keys"
+            "shared shell_environment_policy contains unexpected or missing keys"
         )
 
     permissions = data.get("permissions")
     if not isinstance(permissions, dict) or set(permissions) != {"development"}:
-        raise ValueError("managed config must own only permissions.development")
+        raise ValueError("shared config must own only permissions.development")
 
 
 def is_synced(
     target_data: dict[str, object],
-    managed_data: dict[str, object],
+    shared_data: dict[str, object],
     *,
     target_is_symlink: bool,
 ) -> bool:
@@ -120,14 +122,14 @@ def is_synced(
 
     try:
         for key in TOP_LEVEL_KEYS:
-            if get_path(target_data, (key,)) != get_path(managed_data, (key,)):
+            if get_path(target_data, (key,)) != get_path(shared_data, (key,)):
                 return False
         for key in SHELL_ENVIRONMENT_KEYS:
             path = ("shell_environment_policy", key)
-            if get_path(target_data, path) != get_path(managed_data, path):
+            if get_path(target_data, path) != get_path(shared_data, path):
                 return False
         return get_path(target_data, PERMISSIONS_PREFIX) == get_path(
-            managed_data, PERMISSIONS_PREFIX
+            shared_data, PERMISSIONS_PREFIX
         )
     except KeyError:
         return False
@@ -220,7 +222,8 @@ def clean_body(section: Section) -> list[str]:
     return [
         line
         for line in section.body
-        if line.strip() not in {BEGIN_MARKER, END_MARKER}
+        if line.strip()
+        not in {BEGIN_MARKER, END_MARKER, LEGACY_BEGIN_MARKER, LEGACY_END_MARKER}
         and not should_remove_assignment(section.path, assignment_path(line))
     ]
 
@@ -236,17 +239,17 @@ def nonblank_body(section: Section) -> list[str]:
     return [line for line in section.body if line.strip()]
 
 
-def render_merged_config(target_text: str, managed_text: str) -> str:
-    managed_sections = split_sections(managed_text)
-    managed_top = nonblank_body(managed_sections[0])
-    managed_shell = next(
+def render_merged_config(target_text: str, shared_text: str) -> str:
+    shared_sections = split_sections(shared_text)
+    shared_top = nonblank_body(shared_sections[0])
+    shared_shell = next(
         section
-        for section in managed_sections
+        for section in shared_sections
         if section.path == ("shell_environment_policy",)
     )
-    managed_permission_sections = [
+    shared_permission_sections = [
         section
-        for section in managed_sections
+        for section in shared_sections
         if section.path[: len(PERMISSIONS_PREFIX)] == PERMISSIONS_PREFIX
     ]
 
@@ -262,7 +265,7 @@ def render_merged_config(target_text: str, managed_text: str) -> str:
     output.extend(trim_blank_lines(clean_body(top)))
     if output:
         output.append("")
-    output.extend([BEGIN_MARKER, *managed_top, END_MARKER, ""])
+    output.extend([BEGIN_MARKER, *shared_top, END_MARKER, ""])
 
     shell_found = False
     for section in retained_sections[1:]:
@@ -273,7 +276,7 @@ def render_merged_config(target_text: str, managed_text: str) -> str:
             output.extend(
                 [
                     BEGIN_MARKER,
-                    *nonblank_body(managed_shell),
+                    *nonblank_body(shared_shell),
                     END_MARKER,
                 ]
             )
@@ -289,7 +292,7 @@ def render_merged_config(target_text: str, managed_text: str) -> str:
             [
                 "[shell_environment_policy]",
                 BEGIN_MARKER,
-                *nonblank_body(managed_shell),
+                *nonblank_body(shared_shell),
                 END_MARKER,
                 "",
             ]
@@ -297,7 +300,7 @@ def render_merged_config(target_text: str, managed_text: str) -> str:
 
     output = trim_blank_lines(output)
     output.extend(["", BEGIN_MARKER])
-    for index, section in enumerate(managed_permission_sections):
+    for index, section in enumerate(shared_permission_sections):
         if index:
             output.append("")
         output.append(section.header or "")
@@ -339,44 +342,44 @@ def write_atomic(path: Path, content: str) -> None:
 
 
 def synchronize(
-    target: Path, managed: Path, *, apply: bool
+    target: Path, shared: Path, *, apply: bool
 ) -> tuple[bool, str]:
-    managed_data = load_toml(managed)
-    validate_managed_config(managed_data)
+    shared_data = load_toml(shared)
+    validate_shared_config(shared_data)
     target_exists = target.exists() or target.is_symlink()
     target_data = load_toml(target, missing_ok=True) if target_exists else {}
     target_is_symlink = target.is_symlink()
 
     if is_synced(
         target_data,
-        managed_data,
+        shared_data,
         target_is_symlink=target_is_symlink,
     ):
         return False, f"unchanged: {target}"
 
     if not apply:
-        reason = "legacy symlink" if target_is_symlink else "managed settings differ"
+        reason = "legacy symlink" if target_is_symlink else "shared settings differ"
         return True, f"out of sync: {target} ({reason})"
 
     target_text = target.read_text(encoding="utf-8") if target_exists else ""
-    managed_text = managed.read_text(encoding="utf-8")
-    merged = render_merged_config(target_text, managed_text)
+    shared_text = shared.read_text(encoding="utf-8")
+    merged = render_merged_config(target_text, shared_text)
 
     expected = copy.deepcopy(target_data)
     for key in TOP_LEVEL_KEYS:
-        expected[key] = copy.deepcopy(managed_data[key])
+        expected[key] = copy.deepcopy(shared_data[key])
     shell_environment = expected.setdefault("shell_environment_policy", {})
     if not isinstance(shell_environment, dict):
         raise ValueError("target shell_environment_policy is not a table")
     for key in SHELL_ENVIRONMENT_KEYS:
         shell_environment[key] = copy.deepcopy(
-            managed_data["shell_environment_policy"][key]  # type: ignore[index]
+            shared_data["shell_environment_policy"][key]  # type: ignore[index]
         )
     permissions = expected.setdefault("permissions", {})
     if not isinstance(permissions, dict):
         raise ValueError("target permissions is not a table")
     permissions["development"] = copy.deepcopy(
-        managed_data["permissions"]["development"]  # type: ignore[index]
+        shared_data["permissions"]["development"]  # type: ignore[index]
     )
 
     if tomllib.loads(merged) != expected:
@@ -392,7 +395,7 @@ def main() -> int:
     try:
         changed, message = synchronize(
             arguments.target.expanduser(),
-            arguments.managed.expanduser(),
+            arguments.shared.expanduser(),
             apply=arguments.apply,
         )
     except (OSError, ValueError) as error:
