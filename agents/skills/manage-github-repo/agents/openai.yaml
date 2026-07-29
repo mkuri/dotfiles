@@ -1,0 +1,4 @@
+interface:
+  display_name: "Manage GitHub Repository"
+  short_description: "Manage GitHub repository workflows"
+  default_prompt: "Use $manage-github-repo to handle the requested GitHub repository work with gh and git."
