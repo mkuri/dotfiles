@@ -323,10 +323,66 @@ implementation work exists.
 - Pull requests own the implementation summary and verification evidence.
 - Link these artifacts instead of copying their content between them.
 
+## Pinned Tooling
+
+When a project pins a CLI version in a container image, prefer that
+containerized CLI for generation, migrations, formatting, linting, and
+validation over a host-installed version. Use the host tool only when the
+container cannot reasonably perform the task, and state why.
+
+## Consult Official Documentation When Planning
+
+When writing an implementation plan — or implementing against — any external
+service API or third-party library, consult the current official documentation
+first and base the plan on it. Do not rely on training-data memory for API
+shapes, method signatures, or recommended usage; that knowledge is often stale.
+
+This is mandatory for, at minimum:
+
+- External-service APIs: Firebase, Stripe, Cloudflare, Google, Apple.
+- Flutter library and framework usage: SDK/plugin function signatures and the
+  documented recommended API for a given task.
+- Best practices for the major Flutter libraries: Riverpod, Freezed, GoRouter.
+  Riverpod in particular has recently moved to v3 with breaking changes, so
+  verify the version in `pubspec.yaml` and read that version's docs rather than
+  assuming older patterns still apply.
+
+Prefer, in order: the project's pinned version's official docs, the official
+docs site, then a documentation-lookup tool (e.g. Context7) over web search.
+Cite what you consulted in the plan, and distinguish verified facts from your
+own reasoning (see Engineering Policy → no unsourced "best practice" claims).
+
 ## Engineering Policy
 
 Default technology choices for personal, mobile, web, tools, and systems work.
 Deviate only with a concrete reason.
+
+### Local Development Port Allocation
+
+Reserve host ports by product slot so local services can run concurrently and
+OAuth callback URLs remain stable. Do not choose a port solely because it is
+currently unused.
+
+Use a one-digit product slot followed by the service's conventional four-digit
+port. For example, the canonical web and PostgreSQL ports for slot `2` are
+`28080` and `25432` respectively.
+
+| Product slot | Product | Web | PostgreSQL |
+|---|---|---:|---:|
+| `1` | peppercheck | `18080` | `15432` |
+| `2` | alt | `28080` | `25432` |
+| `3` | Reserved | `38080` | `35432` |
+| `4` | Reserved | `48080` | `45432` |
+
+For another locally exposed service, retain the product slot and use its
+conventional port suffix when it has four digits (for example, Redis for
+`alt` is `26379`). Record any exception in this table before using it. Keep
+container-internal ports conventional; this allocation applies only to host
+ports.
+
+Before creating a new OAuth client or redirect URI, assign the product's web
+port here and use the exact resulting callback URL. OAuth redirect URIs must
+not use wildcard ports.
 
 ### Principles
 
