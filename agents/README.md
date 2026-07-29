@@ -29,8 +29,8 @@ The installer creates these links without replacing unrelated existing files:
 
 `~/.codex/config.toml` remains a regular local file because Codex updates
 machine-specific and dynamic state in it. The installer idempotently merges
-only the settings owned by `codex/managed-config.toml`, preserving every
-unmanaged key and avoiding a rewrite when the managed values already match.
+only the settings shared from `codex/shared-config.toml`, preserving every
+unmanaged key and avoiding a rewrite when the shared values already match.
 It also migrates the legacy dotfiles symlink to a regular file without changing
 the symlink source.
 
@@ -40,7 +40,7 @@ Check for drift without changing the local file:
 python3 codex/sync_config.py --check
 ```
 
-Apply the managed settings directly:
+Apply the shared settings directly:
 
 ```sh
 python3 codex/sync_config.py --apply
