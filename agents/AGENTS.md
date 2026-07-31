@@ -273,6 +273,14 @@ When the revisit trigger occurs, remove `status/deferred` and decide whether
 the next deliverable is a design document or an implementation. Update the
 `type/` label accordingly before starting work.
 
+#### Pull Request Documentation Review
+
+Before opening or updating a pull request, check whether the change affects
+architecture, setup or getting-started steps, public or documented behavior, or
+documented commands, configuration, or ports. Update the relevant `README.md`
+or `docs/` content in the same pull request when it does. When it does not,
+state in the pull request description that no documentation change is needed.
+
 #### Small Changes
 
 1. Create an issue.
