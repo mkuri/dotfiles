@@ -1,0 +1,5 @@
+assert_eq "0B" "$(bytes_to_human 0)" "bytes_to_human 0"
+assert_eq "84.0K" "$(bytes_to_human 86016)" "bytes_to_human 86016 (84K)"
+assert_eq "857.0M" "$(bytes_to_human 898629632)" "bytes_to_human 898629632 (857M)"
+assert_eq "1.0G" "$(bytes_to_human 1073741824)" "bytes_to_human 1073741824 (1G)"
+assert_eq "48.0G" "$(bytes_to_human 51539607552)" "bytes_to_human 51539607552 (48G)"
