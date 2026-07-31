@@ -1,18 +1,22 @@
 ---
 name: manage-github-repo
-description: Manage GitHub repository work with gh and local git, including issues, labels, branches, commits, pushes, pull requests, checks, merges, and post-merge cleanup. Use whenever Codex is asked to create, update, inspect, or close a GitHub issue; commit or push repository changes; create, update, inspect, or merge a pull request; inspect checks; or clean up a GitHub workflow.
+description: Manage GitHub repository work with gh, GitHub MCP fallback, and local git, including issues, labels, branches, commits, pushes, pull requests, checks, merges, and post-merge cleanup. Use whenever Codex is asked to create, update, inspect, or close a GitHub issue; commit or push repository changes; create, update, inspect, or merge a pull request; inspect checks; or clean up a GitHub workflow.
 ---
 
-# Manage a GitHub repository with gh
+# Manage a GitHub repository
 
 Use this workflow for the repository the user identifies. If it is unclear,
 ask for the exact `owner/repo` before a GitHub-visible mutation.
 
 ## Tool policy
 
-- Use `gh` for all GitHub-visible reads and mutations, including issues,
-  labels, pull requests, checks, reviews, merges, and remote branch cleanup.
-- Do not use GitHub MCP tools, apps, or connectors.
+- Prefer `gh` for all GitHub-visible reads and mutations when it is available
+  and authenticated, including issues, labels, pull requests, checks, reviews,
+  merges, and remote branch cleanup.
+- When `gh` is unavailable or unauthenticated, use the GitHub MCP tools
+  (`mcp__github__*`) as the fallback. Request only the necessary fields, use
+  `minimal_output` when the tool supports it, and paginate rather than fetching
+  an unbounded result set.
 - Use local `git` for worktree inspection, branches, staging, commits, and
   local branch cleanup.
 - Do not probe or use SSH from Codex.
@@ -27,12 +31,14 @@ issue, pull request, label, or branch target.
 Follow the repository's `AGENTS.md` rules for issue classification, labels,
 body structure, priorities, dependencies, and design workflows.
 
-Use `gh issue`, `gh label`, and `gh api` for issue operations. Write substantial
-issue bodies to an exact temporary Markdown file and pass it with
-`--body-file`. Remove temporary files after the command succeeds.
+Use `gh issue`, `gh label`, and `gh api` for issue operations when using `gh`.
+When using the MCP fallback, use the corresponding GitHub MCP tool. Write
+substantial issue bodies to an exact temporary Markdown file and pass it with
+`--body-file` when using `gh`; otherwise provide the same body to the MCP tool.
+Remove temporary files after the command succeeds.
 
-After creating or updating an issue, inspect it with `gh issue view` and report
-its number, labels, state, and URL.
+After creating or updating an issue, inspect it with the selected transport and
+report its number, labels, state, and URL.
 
 ## Prepare a change
 
@@ -47,8 +53,8 @@ its number, labels, state, and URL.
 
 ## Push
 
-Verify `gh auth status`, then push through gh-authenticated HTTPS without
-changing the user's Git configuration:
+When `gh` is available and authenticated, verify `gh auth status`, then push
+through gh-authenticated HTTPS without changing the user's Git configuration:
 
 ```bash
 git -c credential.helper= \
@@ -56,16 +62,21 @@ git -c credential.helper= \
   push -u https://github.com/<owner>/<repo>.git <branch>
 ```
 
+When using the MCP fallback, push the branch using the environment's approved
+GitHub transport. Do not change `origin` or configure authentication.
+
 ## Create or update a pull request
 
-Use `gh pr` for all pull request operations.
+Use `gh pr` for pull request operations when using `gh`; otherwise use the
+corresponding GitHub MCP tool.
 
 1. Create or update the pull request with an English Conventional Commit title.
-2. Write a substantial body to a temporary Markdown file and use `--body-file`.
+2. Write a substantial body to a temporary Markdown file and use `--body-file`
+   when using `gh`; otherwise provide the same body to the MCP tool.
 3. Link the tracking issue with a closing keyword when the pull request
    completes it.
-4. Inspect the final metadata with `gh pr view`.
-5. Inspect checks with `gh pr checks`.
+4. Inspect the final metadata with the selected transport.
+5. Inspect checks with the selected transport.
 6. Treat failing checks as blockers unless the user explicitly waives that
    exact check.
 
@@ -73,26 +84,28 @@ Do not merge without explicit authorization for the target pull request.
 
 ## Squash merge
 
-Immediately before an authorized merge:
+Immediately before an authorized merge, use the selected GitHub transport to:
 
-1. Verify that the pull request is open and mergeable with `gh pr view`.
-2. Re-run `gh pr checks`.
+1. Verify that the pull request is open and mergeable with the selected transport.
+2. Re-run checks with the selected transport.
 3. Stop on any failing check.
 4. Record the head branch name.
-5. Squash merge and request remote branch deletion:
+5. When using `gh`, squash merge and request remote branch deletion:
 
    ```bash
    gh pr merge <number> --repo <owner>/<repo> --squash --delete-branch
    ```
 
-6. Verify `state`, `mergedAt`, and `mergeCommit` with `gh pr view`.
+   When using the MCP fallback, squash merge and request remote branch deletion
+   with the corresponding GitHub MCP tool.
+6. Verify `state`, `mergedAt`, and `mergeCommit` with the selected transport.
 
 ## Post-merge cleanup
 
 After a verified squash merge, always finish the workflow:
 
 1. Switch to `main`.
-2. Pull the merged `main` through gh-authenticated HTTPS:
+2. When using `gh`, pull the merged `main` through gh-authenticated HTTPS:
 
    ```bash
    git -c credential.helper= \
@@ -100,8 +113,12 @@ After a verified squash merge, always finish the workflow:
      pull --ff-only https://github.com/<owner>/<repo>.git main
    ```
 
+   When using the MCP fallback, pull through the environment's approved GitHub
+   transport without changing `origin` or configuring authentication.
+
 3. Confirm the remote head branch was deleted. If it remains, delete that exact
-   branch with `gh api`; never use a broad ref or pattern.
+   branch with `gh api` or the corresponding GitHub MCP tool; never use a broad
+   ref or pattern.
 4. Delete the exact local head branch after confirming the pull request is
    merged. A squash merge may require `git branch -D`.
 5. Remove only temporary files created by this workflow.
