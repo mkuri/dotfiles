@@ -283,9 +283,14 @@ state in the pull request description that no documentation change is needed.
 
 #### Small Changes
 
-1. Create an issue.
-2. Implement the change in a pull request.
-3. Link the pull request with a closing keyword such as `Closes #123`.
+Small changes may be implemented and reviewed in a pull request without a new
+tracking issue. Create and link an issue when one already exists, when the
+change needs discussion or follow-up work, or when durable tracking value
+outweighs the overhead.
+
+1. Implement the change in a pull request.
+2. When an issue is used, link the pull request with a closing keyword such as
+   `Closes #123`.
 
 #### Design Workflow
 
