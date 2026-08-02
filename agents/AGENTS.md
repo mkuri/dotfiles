@@ -125,7 +125,8 @@ discovery, discussion, prioritization, and progress.
 ### Source of Truth
 
 - `docs/architecture/overview.md` describes the current architecture.
-- `docs/designs/` records durable design decisions and their rationale.
+- `docs/designs/` holds one living design document per feature; each records
+  that feature's design and a Decision log of its changes.
 - GitHub Issues own actionable and accepted deferred work.
 - Pull requests describe and verify the resulting implementation.
 - Do not maintain a Markdown backlog that duplicates GitHub Issues.
@@ -157,9 +158,10 @@ docs/
   secret injection, and troubleshooting under `docs/development/`.
 - Keep `docs/architecture/overview.md` current and written in the present
   tense. It describes the system as it exists now.
-- Keep permanent, dated design records under `docs/designs/`. They explain
-  decisions at a point in time and are not the source of truth for the current
-  architecture.
+- Keep one living design document per feature under `docs/designs/`, named for
+  the feature (not dated). Each describes that feature's current intended
+  design; a Decision log at the end records how it changed over time. They are
+  not the source of truth for the current architecture.
 - Add audience-oriented sections such as `guides/`, `reference/`, `api/`, or
   `operations/` only when corresponding content exists.
 - Keep one canonical location for each instruction or fact. Link to it instead
@@ -172,22 +174,30 @@ docs/
 
 ### Design Documents
 
-- Commit `*-design.md` documents to git, including when created by a
-  brainstorming workflow.
-- Include, where applicable: status, date, context, goals, non-goals, decision,
-  alternatives, consequences, deferred work, and references.
+- Keep one living design document per feature, committed to git, named for the
+  feature in lowercase kebab-case (for example `daily-planning.md`), not dated.
+- The body always describes the feature's current intended design. Include,
+  where applicable: status, context, goals, non-goals, decision, alternatives,
+  consequences, deferred work, and references.
+- End each document with a `Decision log` section: one dated entry per change,
+  summarizing what changed and why, with links to the issues and pull requests
+  behind it. This preserves decision history without dated files.
+- When a design changes, edit the feature's document in place and add a Decision
+  log entry. Do not create a new dated file for a refinement.
 - Use a small status vocabulary such as `Draft`, `Proposed`, `Approved`,
-  `Superseded`, and `Rejected`.
-- Keep design documents permanently as records of decisions. Do not delete a
-  superseded design; mark it `Superseded` and link to its replacement.
+  `Superseded`, and `Rejected`. A living document normally stays `Approved`;
+  mark it `Superseded` only when the whole feature is replaced, and link to its
+  replacement. Do not delete superseded documents.
 
-### When to Create a Design Document
+### When to Write or Update a Design Document
 
-- Create a design document for substantial changes involving architecture,
-  data models or migrations, external services, security boundaries,
-  compatibility, rollout, or multiple meaningful implementation alternatives.
+- Create or update the relevant feature's design document for substantial
+  changes involving architecture, data models or migrations, external services,
+  security boundaries, compatibility, rollout, or multiple meaningful
+  implementation alternatives. A new feature starts a new document; a change to
+  an existing feature edits its document and adds a Decision log entry.
 - Small bugs, tests, maintenance tasks, and changes within an established
-  design need an issue but do not require a design document.
+  design need an issue but do not require a design-document change.
 
 ### Implementation Plans
 
@@ -295,7 +305,8 @@ outweighs the overhead.
 #### Design Workflow
 
 1. Create a design discussion issue when discussion or tracking is useful.
-2. Write the design document under `docs/designs/`.
+2. Create or update the feature's living design document under `docs/designs/`,
+   adding a Decision log entry for the change.
 3. Link the issue from the design document and the design document from the
    issue.
 4. Close the design discussion issue when the decision is captured and
