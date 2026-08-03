@@ -520,6 +520,11 @@ not use wildcard ports.
     tokens (env-scoped CI secrets), deliver as Docker file-based secrets consumed
     via `*_FILE`, restrict each to its UID, keep no plaintext env file on the host,
     switch revisions atomically.
+  - Local dev: wrap the dev command with the manager's CLI (e.g. `bws run
+    --project-id <id> -- <command>`) so its injected values override the local
+    env file just for the fields that are true secrets, sharing a read-only
+    `development` project/account across small projects when a free-tier cap
+    requires it.
   - Treat manager credentials such as `BWS_ACCESS_TOKEN` as bootstrap secrets:
     inject them from a protected host or CI credential store, never place them in
     dotfiles or command-line arguments, and revoke or rotate them when exposure
