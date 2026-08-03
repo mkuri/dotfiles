@@ -1,6 +1,6 @@
 ---
 name: manage-github-repo
-description: Manage GitHub repository work with gh, GitHub MCP fallback, and local git, including issues, labels, branches, commits, pushes, pull requests, checks, merges, and post-merge cleanup. Use whenever Codex is asked to create, update, inspect, or close a GitHub issue; commit or push repository changes; create, update, inspect, or merge a pull request; inspect checks; or clean up a GitHub workflow.
+description: Manage GitHub repository work with gh, GitHub MCP fallback, and local git, including issues, labels, branches, commits, pushes, pull requests, cross-tool reviews, checks, merges, and post-merge cleanup. Use whenever Codex is asked to create, update, inspect, or close a GitHub issue; commit or push repository changes; create, update, inspect, or merge a pull request; request a cross-tool review on a pull request; inspect checks; or clean up a GitHub workflow.
 ---
 
 # Manage a GitHub repository
@@ -95,6 +95,38 @@ corresponding GitHub MCP tool.
    exact check.
 
 Do not merge without explicit authorization for the target pull request.
+
+## Request a cross-tool review
+
+After opening a substantial pull request, request a review from the other
+agent, so the reviewer is always the tool that did not write the code: when
+Claude authored the change, ask Codex; when Codex authored it, ask Claude.
+
+Post the request as a top-level pull request comment with the selected
+transport (`gh pr comment <number> --repo <owner>/<repo> --body <mention>` or
+the corresponding GitHub MCP tool):
+
+- Ask Codex with the comment body `@codex review`.
+- Ask Claude with the comment body `@claude review`.
+
+Apply this only to substantial work: a feature, a non-trivial fix, or any
+change touching architecture, data models, security, or external integrations.
+Skip it for minor changes such as small bug fixes, formatting, or documentation
+edits, matching the repository's small-change policy. When it is unclear whether
+a change is substantial, ask the user before requesting a review.
+
+The mention only triggers a review when that tool's GitHub review integration
+is enabled for the repository: the Codex GitHub app for `@codex review`, and the
+Claude GitHub app with managed code review or a committed Claude review workflow
+for `@claude review`. If the integration is not enabled the mention does
+nothing; do not treat silence as an error.
+
+Treat the review as best-effort and non-blocking. Requesting it is
+asynchronous, so post the mention, report that the review was requested, and
+continue rather than waiting for the reply. If the reviewer reports it cannot
+run — for example an out-of-usage, quota, or spend-cap message — skip the review
+and note it. A missing, skipped, or failed cross-tool review is never on its own
+a reason to block a merge.
 
 ## Squash merge
 
