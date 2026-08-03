@@ -26,6 +26,20 @@ ask for the exact `owner/repo` before a GitHub-visible mutation.
 Before a GitHub-visible mutation, resolve and state the exact repository,
 issue, pull request, label, or branch target.
 
+## Body text formatting
+
+Write issue bodies, pull request bodies, and review comments as unwrapped
+paragraphs: one line per paragraph, with a blank line between paragraphs.
+GitHub's issue/PR/comment renderer turns every single newline into a visible
+line break, unlike standard CommonMark, which collapses a soft line break into
+a space. Hard-wrapping this content at a fixed column width produces choppy,
+obviously wrapped-looking prose once rendered on GitHub.
+
+This does not apply to commit message bodies, which conventionally wrap at
+around 72 columns and render as plain text, or to Markdown files committed to
+the repository, which GitHub renders through its standard file pipeline where
+soft line breaks do collapse.
+
 ## Issues and labels
 
 Follow the repository's `AGENTS.md` rules for issue classification, labels,
