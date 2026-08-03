@@ -86,6 +86,15 @@ Validate the repository-authored skills before publishing a release:
 gh skill publish skills/mkuri --dry-run
 ```
 
+This repository is public and installs skills globally, so vendoring a
+third-party skill is both a public redistribution and a global activation.
+Before pushing a vendored skill, follow the
+[`manage-vendor-skills`](skills/mkuri/manage-vendor-skills/SKILL.md) workflow:
+check and vendor the upstream license, keep `vendor/` content unmodified (adapt
+into `mkuri/` instead), scope the description so it does not misfire in
+unrelated repositories, and record the source in
+[`skills/vendor/REGISTRY.md`](skills/vendor/REGISTRY.md).
+
 For isolated testing, set `AGENT_CONFIG_HOME` to use a directory other than the
 real home directory:
 
