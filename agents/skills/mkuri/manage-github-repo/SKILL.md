@@ -98,35 +98,35 @@ Do not merge without explicit authorization for the target pull request.
 
 ## Request a cross-tool review
 
-After opening a substantial pull request, request a review from the other
-agent, so the reviewer is always the tool that did not write the code: when
-Claude authored the change, ask Codex; when Codex authored it, ask Claude.
+After opening a substantial pull request, get it reviewed by the agent that did
+not write the code, so the review is independent. Apply this only to substantial
+work: a feature, a non-trivial fix, or any change touching architecture, data
+models, security, or external integrations. Skip it for minor changes such as
+small bug fixes, formatting, or documentation edits, matching the repository's
+small-change policy. When it is unclear whether a change is substantial, ask the
+user first.
 
-Post the request as a top-level pull request comment with the selected
-transport (`gh pr comment <number> --repo <owner>/<repo> --body <mention>` or
-the corresponding GitHub MCP tool):
+The two directions use different mechanisms:
 
-- Ask Codex with the comment body `@codex review`.
-- Ask Claude with the comment body `@claude review`.
+- Claude authored the change → request a Codex review by posting `@codex review`
+  as a top-level pull request comment with the selected transport
+  (`gh pr comment <number> --repo <owner>/<repo> --body '@codex review'` or the
+  corresponding GitHub MCP tool). The Codex GitHub app runs the review in the
+  cloud.
+- Codex authored the change → the review is performed by Claude Code running
+  locally on the user's machine, on the Claude Max subscription. Do not post
+  `@claude review`: managed cloud review needs a Team or Enterprise plan, and the
+  API-key Actions bot is intentionally not used on this account, so the mention
+  would do nothing. Codex cannot start a local Claude Code session, so after
+  creating the pull request, report that it is ready for a Claude review and give
+  the command to run in a Claude Code session: `/review <pull request number or
+  URL>`.
 
-Apply this only to substantial work: a feature, a non-trivial fix, or any
-change touching architecture, data models, security, or external integrations.
-Skip it for minor changes such as small bug fixes, formatting, or documentation
-edits, matching the repository's small-change policy. When it is unclear whether
-a change is substantial, ask the user before requesting a review.
-
-The mention only triggers a review when that tool's GitHub review integration
-is enabled for the repository: the Codex GitHub app for `@codex review`, and the
-Claude GitHub app with managed code review or a committed Claude review workflow
-for `@claude review`. If the integration is not enabled the mention does
-nothing; do not treat silence as an error.
-
-Treat the review as best-effort and non-blocking. Requesting it is
-asynchronous, so post the mention, report that the review was requested, and
-continue rather than waiting for the reply. If the reviewer reports it cannot
-run — for example an out-of-usage, quota, or spend-cap message — skip the review
-and note it. A missing, skipped, or failed cross-tool review is never on its own
-a reason to block a merge.
+Treat the review as best-effort and non-blocking. Post the Codex mention or the
+Claude handoff, report it, and continue rather than waiting. If a Codex review
+cannot run — for example an out-of-usage or quota message — skip it and note it.
+A missing, skipped, or failed cross-tool review is never on its own a reason to
+block a merge.
 
 ## Squash merge
 
