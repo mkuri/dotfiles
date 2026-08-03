@@ -484,8 +484,11 @@ not use wildcard ports.
     hand keys to the client.
   - Backblaze B2 for backups: keep them off the DB's provider and test restores
     regularly.
-  - Test object-storage code against a local S3-compatible container (MinIO) in CI,
-    not real buckets/credentials/object-lock.
+  - Test object-storage code against a local S3-compatible container (Garage) in
+    CI, not real buckets/credentials/object-lock. Prefer Garage over MinIO, whose
+    open-source server repository is archived and officially marked no longer
+    maintained on GitHub; access Garage with the official aws-sdk-go-v2 S3 client
+    (endpoint override + path-style), not the minio-go client.
 - Auth: Firebase Authentication; verify the client-issued JWT in the backend, and
   authorize in the application layer.
 - Payments: Apple/Google IAP for in-app digital content, Stripe for web
