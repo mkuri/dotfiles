@@ -38,6 +38,16 @@ link_path() {
       echo "skip: $target_path (already linked)"
       return
     fi
+    case "$current_source" in
+      "$DOTFILES_DIR"/agents/skills/*)
+        if [ ! -e "$current_source" ]; then
+          rm "$target_path" || return 1
+          ln -s "$source_path" "$target_path" || return 1
+          echo "migrated: $target_path -> $source_path"
+          return
+        fi
+        ;;
+    esac
     echo "WARN: $target_path links to $current_source; expected $source_path" >&2
     return 1
   fi
@@ -47,7 +57,7 @@ link_path() {
     return 1
   fi
 
-  ln -s "$source_path" "$target_path"
+  ln -s "$source_path" "$target_path" || return 1
   echo "linked: $target_path -> $source_path"
 }
 
@@ -88,13 +98,25 @@ sync_claude_settings() {
     --target "$target_path"
 }
 
+install_shared_skills() {
+  skills_dir=$DOTFILES_DIR/agents/skills
+
+  for skill_file in "$skills_dir"/*/SKILL.md "$skills_dir"/*/*/SKILL.md; do
+    if [ ! -f "$skill_file" ]; then
+      continue
+    fi
+
+    skill_dir=${skill_file%/SKILL.md}
+    skill_name=$(basename -- "$skill_dir")
+    link_path "$skill_dir" "$TARGET_HOME/.codex/skills/$skill_name" || setup_status=1
+    link_path "$skill_dir" "$TARGET_HOME/.claude/skills/$skill_name" || setup_status=1
+  done
+}
+
 # Shared instructions.
 link_path "$DOTFILES_DIR/agents/AGENTS.md" "$TARGET_HOME/.codex/AGENTS.md" || setup_status=1
 link_path "$DOTFILES_DIR/agents/AGENTS.md" "$TARGET_HOME/.claude/CLAUDE.md" || setup_status=1
-link_path "$DOTFILES_DIR/agents/skills/manage-github-repo" \
-  "$TARGET_HOME/.codex/skills/manage-github-repo" || setup_status=1
-link_path "$DOTFILES_DIR/agents/skills/manage-github-repo" \
-  "$TARGET_HOME/.claude/skills/manage-github-repo" || setup_status=1
+install_shared_skills
 if prepare_claude_rules_dir; then
   link_path "$DOTFILES_DIR/claude/rules/sub-agent-model-policy.md" \
     "$TARGET_HOME/.claude/rules/sub-agent-model-policy.md" || setup_status=1
