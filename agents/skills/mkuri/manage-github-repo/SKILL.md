@@ -128,6 +128,55 @@ cannot run — for example an out-of-usage or quota message — skip it and note
 A missing, skipped, or failed cross-tool review is never on its own a reason to
 block a merge.
 
+### Waiting for the Codex review result
+
+The Codex review arrives asynchronously as a pull request comment from the
+Codex GitHub app, so its arrival can be detected without the user pasting
+anything. When running as Claude Code, after posting `@codex review`, launch a
+background subagent (Agent tool, `run_in_background: true`) instead of polling
+from the main session. Give it a self-contained prompt: poll `gh pr view
+<number> --repo <owner>/<repo> --comments` (or the corresponding GitHub MCP
+tool) at a reasonable interval — a few minutes — until a review from the Codex
+app appears, then report its verdict and key points; give up and report a
+timeout after a bounded wait (for example 30 minutes) rather than polling
+indefinitely.
+
+If there is follow-up work available, continue with it immediately after
+launching the background subagent rather than waiting for it. Its completion
+arrives later as a notification; fold the review result in then, or when next
+reporting to the user.
+
+The Codex→Claude direction has no equivalent to poll for: it hands off to the
+user running `/review`, not to an event with observable state.
+
+### Respond to review comments
+
+For each individual review comment addressed with a fix, close its thread
+explicitly instead of leaving it to a summary reply:
+
+1. React to the comment to acknowledge it, using `gh api -X POST
+   repos/<owner>/<repo>/pulls/comments/<comment id>/reactions -f content=+1`
+   or the corresponding GitHub MCP tool.
+2. Reply on the same thread referencing the commit that fixes it, using `gh api
+   -X POST repos/<owner>/<repo>/pulls/<number>/comments -f body='Fixed in
+   <sha>.' -F in_reply_to=<comment id>` or the corresponding GitHub MCP tool.
+3. Resolve the conversation once the reply is posted, using `gh api graphql`
+   with the `resolveReviewThread` mutation against the thread's node ID
+   (fetched via the `reviewThreads` GraphQL query on the pull request), or the
+   corresponding GitHub MCP tool.
+
+Do this per comment, not only once at the top level, so each finding's thread
+shows its own reaction, reply, and resolution.
+
+### Re-review after fixes
+
+When a cross-tool review's findings are addressed with fixes, request another
+cross-tool review of the updated pull request through the same mechanism, so
+the independent reviewer re-checks the fix rather than assuming it worked.
+Cap this review → fix → re-review cycle at 3 rounds total. If findings remain
+unresolved after the third round, stop re-requesting, report the outstanding
+findings to the user, and let them decide how to proceed.
+
 ## Squash merge
 
 Immediately before an authorized merge, use the selected GitHub transport to:
