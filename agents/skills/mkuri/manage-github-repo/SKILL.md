@@ -149,6 +149,25 @@ reporting to the user.
 The Codex→Claude direction has no equivalent to poll for: it hands off to the
 user running `/review`, not to an event with observable state.
 
+### Respond to review comments
+
+For each individual review comment addressed with a fix, close its thread
+explicitly instead of leaving it to a summary reply:
+
+1. React to the comment to acknowledge it, using `gh api -X POST
+   repos/<owner>/<repo>/pulls/comments/<comment id>/reactions -f content=+1`
+   or the corresponding GitHub MCP tool.
+2. Reply on the same thread referencing the commit that fixes it, using `gh api
+   -X POST repos/<owner>/<repo>/pulls/<number>/comments -f body='Fixed in
+   <sha>.' -F in_reply_to=<comment id>` or the corresponding GitHub MCP tool.
+3. Resolve the conversation once the reply is posted, using `gh api graphql`
+   with the `resolveReviewThread` mutation against the thread's node ID
+   (fetched via the `reviewThreads` GraphQL query on the pull request), or the
+   corresponding GitHub MCP tool.
+
+Do this per comment, not only once at the top level, so each finding's thread
+shows its own reaction, reply, and resolution.
+
 ### Re-review after fixes
 
 When a cross-tool review's findings are addressed with fixes, request another
