@@ -133,45 +133,57 @@ block a merge.
 Codex's response lands in one of two different places, and checking only one
 of them silently misses real findings:
 
-- A formal pull request **review** with per-line **inline comments**. Detect
-  the review with `gh api --paginate repos/<owner>/<repo>/pulls/<number>/reviews`
-  (filter for `user.login == "chatgpt-codex-connector[bot]"` and the commit
-  SHA under review), note its `id`, then enumerate every individual finding
-  scoped to that review with `gh api --paginate
-  repos/<owner>/<repo>/pulls/<number>/reviews/<review id>/comments`. Both
-  endpoints default to 30 items per page, so a review or a finding past the
-  first page is silently missed without `--paginate`. Do not use the PR-wide
-  `pulls/<number>/comments` endpoint for this: it lists every review comment
-  on the whole pull request, so on a re-review it mixes in stale comments
-  from earlier rounds alongside the new ones. **`gh pr view --comments` does
-  not surface any of this** — it only shows the top-level Conversation tab,
-  so relying on it (or on the review's own top-level body/summary text) can
-  look clean while real inline findings sit unread in a separate endpoint.
+- A formal pull request **review** with per-line **inline comments**, which
+  carries a `commit_id`. **`gh pr view --comments` does not surface these** —
+  it only shows the top-level Conversation tab, so relying on it (or on the
+  review's own top-level body/summary text) can look clean while real inline
+  findings sit unread in a separate, paginated endpoint.
 - A plain **issue-level comment** ("Codex Review: Didn't find any major
-  issues") when Codex has no findings at all, fetched with `gh api --paginate
-  repos/<owner>/<repo>/issues/<number>/comments` (also defaults to 30 items
-  per page).
+  issues") when Codex has no findings at all. Issue comments carry no
+  `commit_id`, so this path can only be matched by timestamp against the
+  `@codex review` trigger comment, not by commit.
 
-Always query the matched review's scoped comments endpoint directly before
-concluding a review is clean — do not infer "no findings" from the review
-object's summary alone.
+Hand-writing the polling and JSON handling for this in an ad hoc shell script
+each time is a proven source of bugs — a from-scratch attempt missed the
+inline-comments endpoint entirely, then mixed in stale comments from earlier
+rounds, then required an unsatisfiable commit match on the issue-comment path,
+then dropped findings past the first pagination page, then corrupted the
+captured JSON by round-tripping it through a variable and `echo` (some
+shells, zsh's builtin `echo` by default among them, reinterpret backslash
+escapes like the `\n` inside a review body and turn valid escaped JSON into
+invalid raw control characters). `scripts/poll-codex-review.sh` in this
+skill's directory already handles all of that — use it instead of
+reimplementing the logic:
+
+```
+scripts/poll-codex-review.sh <owner/repo> <pr_number> <commit_sha> <since_iso8601> [max_wait_seconds] [interval_seconds]
+```
+
+`commit_sha` is the commit under review (matched as a `commit_id` prefix);
+`since_iso8601` is the `@codex review` trigger comment's `created_at`. It
+polls both surfaces, paginating each, and exits `0` with the matched review's
+findings as JSON on stdout, `1` with a clean-pass comment as JSON, or `2` (a
+`{"result":"timeout",...}` line) if neither appeared within
+`max_wait_seconds` (default 480, i.e. 8 minutes, kept under common
+single-command timeouts) — re-invoke the script on exit `2` to keep polling
+rather than treating it as a final answer.
 
 The Codex review arrives asynchronously as a pull request comment from the
 Codex GitHub app, so its arrival can be detected without the user pasting
-anything. When running as Claude Code, after posting `@codex review`, launch a
-background subagent (Agent tool, `run_in_background: true`) instead of polling
-from the main session. Give it a self-contained prompt: poll both surfaces
-above at a reasonable interval — a few minutes — until either a review from
-the Codex app appears for the exact commit under review (matched by
-`commit_id`, which only review objects carry), or an issue-level comment from
-the Codex app appears that was created after the `@codex review` trigger
-comment (issue comments carry no `commit_id`, so match by timestamp instead).
-Then report its verdict and the full list of inline findings (if any) with
-their comment IDs, paths, and lines; give up and report a timeout after a
-bounded wait (for example 30 minutes) rather than polling indefinitely.
+anything. When running as Claude Code, after posting `@codex review`, run the
+script via the Bash tool with `run_in_background: true` instead of polling
+from the main session or delegating to a subagent — the script is already
+deterministic, so no LLM needs to reinterpret it. When it completes, act on
+its exit code and JSON: report findings on `0`, report a clean pass on `1`,
+or on `2` decide whether to relaunch it (for example, up to 3–4 relaunches to
+cover roughly the same 30-minute overall budget) before giving up and
+reporting a timeout to the user. When using the GitHub MCP fallback instead
+of `gh`, the script is unavailable — replicate its matching logic (commit_id
+prefix for reviews, timestamp for issue comments; paginate both) using the
+corresponding MCP tools.
 
 If there is follow-up work available, continue with it immediately after
-launching the background subagent rather than waiting for it. Its completion
+launching the background poll rather than waiting for it. Its completion
 arrives later as a notification; fold the review result in then, or when next
 reporting to the user.
 
@@ -202,10 +214,10 @@ shows its own reaction, reply, and resolution.
 When a cross-tool review's findings are addressed with fixes, request another
 cross-tool review of the updated pull request through the same mechanism, so
 the independent reviewer re-checks the fix rather than assuming it worked.
-Check the re-review the same way as the first pass — find the review object
-for the new commit, then fetch its scoped `reviews/<review id>/comments` —
-since a clean second pass can introduce new findings distinct from the ones
-just fixed, not only confirm or deny the original ones.
+Check the re-review the same way as the first pass — run
+`scripts/poll-codex-review.sh` with the new commit's SHA — since a clean
+second pass can introduce new findings distinct from the ones just fixed, not
+only confirm or deny the original ones.
 Cap this review → fix → re-review cycle at 3 rounds total. If findings remain
 unresolved after the third round, stop re-requesting, report the outstanding
 findings to the user, and let them decide how to proceed.
