@@ -134,21 +134,23 @@ Codex's response lands in one of two different places, and checking only one
 of them silently misses real findings:
 
 - A formal pull request **review** with per-line **inline comments**. Detect
-  the review with `gh api repos/<owner>/<repo>/pulls/<number>/reviews`
+  the review with `gh api --paginate repos/<owner>/<repo>/pulls/<number>/reviews`
   (filter for `user.login == "chatgpt-codex-connector[bot]"` and the commit
   SHA under review), note its `id`, then enumerate every individual finding
-  scoped to that review with `gh api
-  repos/<owner>/<repo>/pulls/<number>/reviews/<review id>/comments`. Do not
-  use the PR-wide `pulls/<number>/comments` endpoint for this: it lists every
-  review comment on the whole pull request, so on a re-review it mixes in
-  stale comments from earlier rounds alongside the new ones. **`gh pr view
-  --comments` does not surface any of this** — it only shows the top-level
-  Conversation tab, so relying on it (or on the review's own top-level
-  body/summary text) can look clean while real inline findings sit unread in
-  a separate endpoint.
+  scoped to that review with `gh api --paginate
+  repos/<owner>/<repo>/pulls/<number>/reviews/<review id>/comments`. Both
+  endpoints default to 30 items per page, so a review or a finding past the
+  first page is silently missed without `--paginate`. Do not use the PR-wide
+  `pulls/<number>/comments` endpoint for this: it lists every review comment
+  on the whole pull request, so on a re-review it mixes in stale comments
+  from earlier rounds alongside the new ones. **`gh pr view --comments` does
+  not surface any of this** — it only shows the top-level Conversation tab,
+  so relying on it (or on the review's own top-level body/summary text) can
+  look clean while real inline findings sit unread in a separate endpoint.
 - A plain **issue-level comment** ("Codex Review: Didn't find any major
-  issues") when Codex has no findings at all, fetched with `gh api
-  repos/<owner>/<repo>/issues/<number>/comments`.
+  issues") when Codex has no findings at all, fetched with `gh api --paginate
+  repos/<owner>/<repo>/issues/<number>/comments` (also defaults to 30 items
+  per page).
 
 Always query the matched review's scoped comments endpoint directly before
 concluding a review is clean — do not infer "no findings" from the review
