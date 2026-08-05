@@ -170,10 +170,15 @@ rather than treating it as a final answer.
 
 `gh pr comment` prints only the new comment's URL, not its `created_at`, so
 `since_iso8601` is not available from that command's own output. Fetch it
-right after posting, before launching the poller:
+right after posting, before launching the poller. This endpoint defaults to
+30 items per page in ascending order, so on a pull request with more history
+`.[-1]` on an unpaginated call would silently return a stale comment instead
+of the one just posted; `--slurp` cannot be combined with `gh api`'s own
+`--jq`, so pipe to a separate `jq` and flatten with `.[][]` as
+`poll-codex-review.sh` does:
 
 ```
-gh api "repos/<owner>/<repo>/issues/<number>/comments" --jq '.[-1].created_at'
+gh api --paginate --slurp "repos/<owner>/<repo>/issues/<number>/comments" | jq -r '[.[][]] | last.created_at'
 ```
 
 The Codex review arrives asynchronously as a pull request comment from the
