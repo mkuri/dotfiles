@@ -168,12 +168,21 @@ findings as JSON on stdout, `1` with a clean-pass comment as JSON, or `2` (a
 single-command timeouts) — re-invoke the script on exit `2` to keep polling
 rather than treating it as a final answer.
 
+`gh pr comment` prints only the new comment's URL, not its `created_at`, so
+`since_iso8601` is not available from that command's own output. Fetch it
+right after posting, before launching the poller:
+
+```
+gh api "repos/<owner>/<repo>/issues/<number>/comments" --jq '.[-1].created_at'
+```
+
 The Codex review arrives asynchronously as a pull request comment from the
 Codex GitHub app, so its arrival can be detected without the user pasting
-anything. When running as Claude Code, after posting `@codex review`, run the
-script via the Bash tool with `run_in_background: true` instead of polling
-from the main session or delegating to a subagent — the script is already
-deterministic, so no LLM needs to reinterpret it. When it completes, act on
+anything. When running as Claude Code, after posting `@codex review` and
+capturing its timestamp as above, run the script via the Bash tool with
+`run_in_background: true` instead of polling from the main session or
+delegating to a subagent — the script is already deterministic, so no LLM
+needs to reinterpret it. When it completes, act on
 its exit code and JSON: report findings on `0`, report a clean pass on `1`,
 or on `2` decide whether to relaunch it (for example, up to 3–4 relaunches to
 cover roughly the same 30-minute overall budget) before giving up and
