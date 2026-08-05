@@ -136,17 +136,23 @@ of them silently misses real findings:
 - A formal pull request **review** with per-line **inline comments**. Detect
   the review with `gh api repos/<owner>/<repo>/pulls/<number>/reviews`
   (filter for `user.login == "chatgpt-codex-connector[bot]"` and the commit
-  SHA under review), then enumerate every individual finding with `gh api
-  repos/<owner>/<repo>/pulls/<number>/comments`. **`gh pr view --comments`
-  does not surface these** — it only shows the top-level Conversation tab, so
-  relying on it (or on the review's own top-level body/summary text) can look
-  clean while real inline findings sit unread in a separate endpoint.
+  SHA under review), note its `id`, then enumerate every individual finding
+  scoped to that review with `gh api
+  repos/<owner>/<repo>/pulls/<number>/reviews/<review id>/comments`. Do not
+  use the PR-wide `pulls/<number>/comments` endpoint for this: it lists every
+  review comment on the whole pull request, so on a re-review it mixes in
+  stale comments from earlier rounds alongside the new ones. **`gh pr view
+  --comments` does not surface any of this** — it only shows the top-level
+  Conversation tab, so relying on it (or on the review's own top-level
+  body/summary text) can look clean while real inline findings sit unread in
+  a separate endpoint.
 - A plain **issue-level comment** ("Codex Review: Didn't find any major
   issues") when Codex has no findings at all, fetched with `gh api
   repos/<owner>/<repo>/issues/<number>/comments`.
 
-Always query `pulls/<number>/comments` directly before concluding a review is
-clean — do not infer "no findings" from the review object's summary alone.
+Always query the matched review's scoped comments endpoint directly before
+concluding a review is clean — do not infer "no findings" from the review
+object's summary alone.
 
 The Codex review arrives asynchronously as a pull request comment from the
 Codex GitHub app, so its arrival can be detected without the user pasting
@@ -191,10 +197,10 @@ shows its own reaction, reply, and resolution.
 When a cross-tool review's findings are addressed with fixes, request another
 cross-tool review of the updated pull request through the same mechanism, so
 the independent reviewer re-checks the fix rather than assuming it worked.
-Check the re-review the same way as the first pass — both the review object
-and `pulls/<number>/comments` for the new commit — since a clean second pass
-can introduce new findings distinct from the ones just fixed, not only
-confirm or deny the original ones.
+Check the re-review the same way as the first pass — find the review object
+for the new commit, then fetch its scoped `reviews/<review id>/comments` —
+since a clean second pass can introduce new findings distinct from the ones
+just fixed, not only confirm or deny the original ones.
 Cap this review → fix → re-review cycle at 3 rounds total. If findings remain
 unresolved after the third round, stop re-requesting, report the outstanding
 findings to the user, and let them decide how to proceed.
