@@ -130,19 +130,74 @@ block a merge.
 
 ### Waiting for the Codex review result
 
+Codex's response lands in one of two different places, and checking only one
+of them silently misses real findings:
+
+- A formal pull request **review** with per-line **inline comments**, which
+  carries a `commit_id`. **`gh pr view --comments` does not surface these** —
+  it only shows the top-level Conversation tab, so relying on it (or on the
+  review's own top-level body/summary text) can look clean while real inline
+  findings sit unread in a separate, paginated endpoint.
+- A plain **issue-level comment** ("Codex Review: Didn't find any major
+  issues") when Codex has no findings at all. Issue comments carry no
+  `commit_id`, so this path can only be matched by timestamp against the
+  `@codex review` trigger comment, not by commit.
+
+Hand-writing the polling and JSON handling for this in an ad hoc shell script
+each time is a proven source of bugs — a from-scratch attempt missed the
+inline-comments endpoint entirely, then mixed in stale comments from earlier
+rounds, then required an unsatisfiable commit match on the issue-comment path,
+then dropped findings past the first pagination page, then corrupted the
+captured JSON by round-tripping it through a variable and `echo` (some
+shells, zsh's builtin `echo` by default among them, reinterpret backslash
+escapes like the `\n` inside a review body and turn valid escaped JSON into
+invalid raw control characters). `scripts/poll-codex-review.sh` in this
+skill's directory already handles all of that — use it instead of
+reimplementing the logic:
+
+```
+scripts/poll-codex-review.sh <owner/repo> <pr_number> <commit_sha> <since_iso8601> [max_wait_seconds] [interval_seconds]
+```
+
+`commit_sha` is the commit under review (matched as a `commit_id` prefix);
+`since_iso8601` is the `@codex review` trigger comment's `created_at`. It
+polls both surfaces, paginating each, and exits `0` with the matched review's
+findings as JSON on stdout, `1` with a clean-pass comment as JSON, or `2` (a
+`{"result":"timeout",...}` line) if neither appeared within
+`max_wait_seconds` (default 480, i.e. 8 minutes, kept under common
+single-command timeouts) — re-invoke the script on exit `2` to keep polling
+rather than treating it as a final answer.
+
+`gh pr comment` prints only the new comment's URL, not its `created_at`, so
+`since_iso8601` is not available from that command's own output. Fetch it
+right after posting, before launching the poller. This endpoint defaults to
+30 items per page in ascending order, so on a pull request with more history
+`.[-1]` on an unpaginated call would silently return a stale comment instead
+of the one just posted; `--slurp` cannot be combined with `gh api`'s own
+`--jq`, so pipe to a separate `jq` and flatten with `.[][]` as
+`poll-codex-review.sh` does:
+
+```
+gh api --paginate --slurp "repos/<owner>/<repo>/issues/<number>/comments" | jq -r '[.[][]] | last.created_at'
+```
+
 The Codex review arrives asynchronously as a pull request comment from the
 Codex GitHub app, so its arrival can be detected without the user pasting
-anything. When running as Claude Code, after posting `@codex review`, launch a
-background subagent (Agent tool, `run_in_background: true`) instead of polling
-from the main session. Give it a self-contained prompt: poll `gh pr view
-<number> --repo <owner>/<repo> --comments` (or the corresponding GitHub MCP
-tool) at a reasonable interval — a few minutes — until a review from the Codex
-app appears, then report its verdict and key points; give up and report a
-timeout after a bounded wait (for example 30 minutes) rather than polling
-indefinitely.
+anything. When running as Claude Code, after posting `@codex review` and
+capturing its timestamp as above, run the script via the Bash tool with
+`run_in_background: true` instead of polling from the main session or
+delegating to a subagent — the script is already deterministic, so no LLM
+needs to reinterpret it. When it completes, act on
+its exit code and JSON: report findings on `0`, report a clean pass on `1`,
+or on `2` decide whether to relaunch it (for example, up to 3–4 relaunches to
+cover roughly the same 30-minute overall budget) before giving up and
+reporting a timeout to the user. When using the GitHub MCP fallback instead
+of `gh`, the script is unavailable — replicate its matching logic (commit_id
+prefix for reviews, timestamp for issue comments; paginate both) using the
+corresponding MCP tools.
 
 If there is follow-up work available, continue with it immediately after
-launching the background subagent rather than waiting for it. Its completion
+launching the background poll rather than waiting for it. Its completion
 arrives later as a notification; fold the review result in then, or when next
 reporting to the user.
 
@@ -173,6 +228,10 @@ shows its own reaction, reply, and resolution.
 When a cross-tool review's findings are addressed with fixes, request another
 cross-tool review of the updated pull request through the same mechanism, so
 the independent reviewer re-checks the fix rather than assuming it worked.
+Check the re-review the same way as the first pass — run
+`scripts/poll-codex-review.sh` with the new commit's SHA — since a clean
+second pass can introduce new findings distinct from the ones just fixed, not
+only confirm or deny the original ones.
 Cap this review → fix → re-review cycle at 3 rounds total. If findings remain
 unresolved after the third round, stop re-requesting, report the outstanding
 findings to the user, and let them decide how to proceed.
