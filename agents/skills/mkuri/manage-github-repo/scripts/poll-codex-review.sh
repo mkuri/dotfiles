@@ -77,14 +77,15 @@ while [ "$elapsed" -lt "$MAX_WAIT" ]; do
     # to retry next iteration instead of reporting a false "zero findings".
   fi
 
-  # Require positive evidence of a completed, non-failed clean-pass comment
-  # (its "Codex Review" branding) and explicitly reject known skip/failure
-  # notices (e.g. an out-of-usage or quota message) rather than treating any
-  # bot comment posted after the trigger as a clean result.
+  # Require the specific clean-pass phrasing ("." stands in for the
+  # apostrophe, which may be a typographic quote) rather than a generic
+  # "Codex Review" branding match: a skipped/failed/status comment with the
+  # same branding but different wording must not be reported as a clean pass.
+  # The negative keyword check is kept as a defense-in-depth backstop.
   clean=$(gh api --paginate --slurp "repos/$REPO/issues/$PR/comments" 2>/dev/null \
     | jq --arg bot "$BOT_LOGIN" --argjson since "$since_epoch" \
       '[.[][] | select(.user.login == $bot) | select((.created_at | fromdateiso8601) > $since)
-        | select(.body | test("codex review"; "i"))
+        | select(.body | test("didn.t find any major issues"; "i"))
         | select(.body | test("quota|out.of.usage|rate.limit|unable to"; "i") | not)] | .[0] // empty')
 
   if [ -n "$clean" ]; then
