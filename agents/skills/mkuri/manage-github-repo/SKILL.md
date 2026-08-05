@@ -159,11 +159,14 @@ Codex GitHub app, so its arrival can be detected without the user pasting
 anything. When running as Claude Code, after posting `@codex review`, launch a
 background subagent (Agent tool, `run_in_background: true`) instead of polling
 from the main session. Give it a self-contained prompt: poll both surfaces
-above at a reasonable interval — a few minutes — until a review or comment
-from the Codex app appears for the exact commit under review, then report its
-verdict and the full list of inline findings (if any) with their comment IDs,
-paths, and lines; give up and report a timeout after a bounded wait (for
-example 30 minutes) rather than polling indefinitely.
+above at a reasonable interval — a few minutes — until either a review from
+the Codex app appears for the exact commit under review (matched by
+`commit_id`, which only review objects carry), or an issue-level comment from
+the Codex app appears that was created after the `@codex review` trigger
+comment (issue comments carry no `commit_id`, so match by timestamp instead).
+Then report its verdict and the full list of inline findings (if any) with
+their comment IDs, paths, and lines; give up and report a timeout after a
+bounded wait (for example 30 minutes) rather than polling indefinitely.
 
 If there is follow-up work available, continue with it immediately after
 launching the background subagent rather than waiting for it. Its completion
