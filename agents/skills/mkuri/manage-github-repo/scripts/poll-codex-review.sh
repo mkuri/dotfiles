@@ -58,16 +58,23 @@ since_epoch=$(date -u -j -f "%Y-%m-%dT%H:%M:%SZ" "$SINCE" +%s 2>/dev/null || dat
 elapsed=0
 while [ "$elapsed" -lt "$MAX_WAIT" ]; do
   reviews=$(gh api --paginate --slurp "repos/$REPO/pulls/$PR/reviews" 2>/dev/null) || reviews="[]"
-  match=$(printf '%s' "$reviews" | jq --arg bot "$BOT_LOGIN" --arg commit "$COMMIT" \
-    '[.[][] | select(.user.login == $bot) | select(.commit_id | startswith($commit))] | .[0] // empty')
+  # Require the review's own submitted_at to be after the trigger too, not
+  # just a commit_id match: re-running "@codex review" without a new commit
+  # would otherwise immediately match a stale review from an earlier round.
+  match=$(printf '%s' "$reviews" | jq --arg bot "$BOT_LOGIN" --arg commit "$COMMIT" --argjson since "$since_epoch" \
+    '[.[][] | select(.user.login == $bot) | select(.commit_id | startswith($commit))
+      | select((.submitted_at | fromdateiso8601) > $since)] | .[0] // empty')
 
   if [ -n "$match" ]; then
     review_id=$(printf '%s' "$match" | jq -r '.id')
-    findings=$(gh api --paginate --slurp "repos/$REPO/pulls/$PR/reviews/$review_id/comments" 2>/dev/null \
-      | jq -c '[.[][] | {id, path, line, body}]')
-    jq -nc --argjson review_id "$review_id" --arg commit "$COMMIT" --argjson findings "${findings:-[]}" \
-      '{result: "review", review_id: $review_id, commit_id: $commit, findings: $findings}'
-    exit 0
+    if findings_raw=$(gh api --paginate --slurp "repos/$REPO/pulls/$PR/reviews/$review_id/comments" 2>/dev/null); then
+      findings=$(printf '%s' "$findings_raw" | jq -c '[.[][] | {id, path, line, body}]')
+      jq -nc --argjson review_id "$review_id" --arg commit "$COMMIT" --argjson findings "${findings:-[]}" \
+        '{result: "review", review_id: $review_id, commit_id: $commit, findings: $findings}'
+      exit 0
+    fi
+    # The comment fetch failed (transient network/API error) -- fall through
+    # to retry next iteration instead of reporting a false "zero findings".
   fi
 
   # Require positive evidence of a completed, non-failed clean-pass comment
