@@ -13,6 +13,9 @@
 # and `echo` — some shells (zsh's builtin echo, by default) reinterpret
 # backslash escapes like the \n inside a review body and corrupt the JSON.
 # `printf '%s'` does not have that problem and is used throughout instead.
+# `gh api --paginate` alone prints one JSON document per page rather than a
+# single merged array, so every paginated call here also passes `--slurp` and
+# flattens with `.[][]` in the following jq filter.
 #
 # Usage:
 #   poll-codex-review.sh <owner/repo> <pr_number> <commit_sha> <since_iso8601> \
@@ -48,24 +51,34 @@ INTERVAL="${6:-20}"
 
 since_epoch=$(date -u -j -f "%Y-%m-%dT%H:%M:%SZ" "$SINCE" +%s 2>/dev/null || date -u -d "$SINCE" +%s)
 
+# --paginate alone prints one JSON array per page as separate top-level
+# documents; --slurp wraps them into a single outer array of pages, so `.[][]`
+# below iterates pages then items to get a flat stream regardless of page count.
+
 elapsed=0
 while [ "$elapsed" -lt "$MAX_WAIT" ]; do
-  reviews=$(gh api --paginate "repos/$REPO/pulls/$PR/reviews" 2>/dev/null) || reviews="[]"
+  reviews=$(gh api --paginate --slurp "repos/$REPO/pulls/$PR/reviews" 2>/dev/null) || reviews="[]"
   match=$(printf '%s' "$reviews" | jq --arg bot "$BOT_LOGIN" --arg commit "$COMMIT" \
-    '[.[] | select(.user.login == $bot) | select(.commit_id | startswith($commit))] | .[0] // empty')
+    '[.[][] | select(.user.login == $bot) | select(.commit_id | startswith($commit))] | .[0] // empty')
 
   if [ -n "$match" ]; then
     review_id=$(printf '%s' "$match" | jq -r '.id')
-    findings=$(gh api --paginate "repos/$REPO/pulls/$PR/reviews/$review_id/comments" 2>/dev/null \
-      | jq -c '[.[] | {id, path, line, body}]')
+    findings=$(gh api --paginate --slurp "repos/$REPO/pulls/$PR/reviews/$review_id/comments" 2>/dev/null \
+      | jq -c '[.[][] | {id, path, line, body}]')
     jq -nc --argjson review_id "$review_id" --arg commit "$COMMIT" --argjson findings "${findings:-[]}" \
       '{result: "review", review_id: $review_id, commit_id: $commit, findings: $findings}'
     exit 0
   fi
 
-  clean=$(gh api --paginate "repos/$REPO/issues/$PR/comments" 2>/dev/null \
+  # Require positive evidence of a completed, non-failed clean-pass comment
+  # (its "Codex Review" branding) and explicitly reject known skip/failure
+  # notices (e.g. an out-of-usage or quota message) rather than treating any
+  # bot comment posted after the trigger as a clean result.
+  clean=$(gh api --paginate --slurp "repos/$REPO/issues/$PR/comments" 2>/dev/null \
     | jq --arg bot "$BOT_LOGIN" --argjson since "$since_epoch" \
-      '[.[] | select(.user.login == $bot) | select((.created_at | fromdateiso8601) > $since)] | .[0] // empty')
+      '[.[][] | select(.user.login == $bot) | select((.created_at | fromdateiso8601) > $since)
+        | select(.body | test("codex review"; "i"))
+        | select(.body | test("quota|out.of.usage|rate.limit|unable to"; "i") | not)] | .[0] // empty')
 
   if [ -n "$clean" ]; then
     printf '%s' "$clean" | jq -c '{result: "clean", comment_id: .id, created_at: .created_at, body}'
