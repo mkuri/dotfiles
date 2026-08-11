@@ -49,8 +49,10 @@ Follow Conventional Commits:
 <type>(<scope>): <description>
 ```
 
-Allowed types are `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `ci`,
-`perf`, and `style`.
+The adopted quality-gate configuration owns the accepted commit types and
+machine-checked message format. Use the shared
+[`git-quality-gates` template](templates/git-quality-gates/README.md) when a
+repository has not selected its own equivalent tooling.
 
 Use a scope when the change targets a specific component or directory, such as
 `flutter`, `webapp`, `supabase`, `stripe`, or `edge-functions`. Omit it for
@@ -86,13 +88,14 @@ unknown repo, keep the prompt — hook execution is a real hazard there.
 
 ## Sensitive Files
 
-Never read or display the contents of:
+Never read or display the contents of sensitive files, including files blocked
+by the repository's adopted quality-gate configuration. The shared
+[`git-quality-gates` template](templates/git-quality-gates/README.md) owns the
+exact forbidden-path patterns and its documented allowlists.
 
-- `.env` or `.env.*`, except `.env.example`
-- Gitignored project configuration that may contain secrets or personal data
-- Files containing API keys, tokens, credentials, or other secrets
-- Service-account JSON files
-- `*.jks`, `*.keystore`, `key.properties`, or similar credential files
+Also avoid gitignored project configuration that may contain secrets or
+personal data, and any file that may contain API keys, tokens, credentials, or
+other secrets.
 
 Check `.gitignore` before inspecting untracked or ignored files. Prefer files
 tracked in git. If a file might contain secrets, skip it.
@@ -101,9 +104,9 @@ When delegating any file-reading work to another agent, including code review,
 PII checks, file audits, and codebase exploration, explicitly include this
 instruction in the delegation prompt:
 
-> Do not read `.env`, `.env.*`, `*.jks`, `*.keystore`, `key.properties`, or any
-> gitignored file that may contain secrets. Review only files tracked in git. If
-> unsure whether a file contains secrets, skip it.
+> Do not read any sensitive file configured by this repository or any gitignored
+> file that may contain secrets. Review only files tracked in git. If unsure
+> whether a file contains secrets, skip it.
 
 Delegated agents might not inherit the current instructions. Repeat the
 sensitive-file restriction in every delegation prompt without exception.
@@ -166,9 +169,9 @@ docs/
   `operations/` only when corresponding content exists.
 - Keep one canonical location for each instruction or fact. Link to it instead
   of duplicating it across the README and documentation.
-- Prefer portable Markdown: lowercase kebab-case filenames, one H1 per
-  document, relative links with `.md` extensions, and no SSG-specific MDX or
-  components until a documentation framework is selected.
+- Prefer portable Markdown and no SSG-specific MDX or components until a
+  documentation framework is selected. Let an adopted Markdown quality-gate
+  configuration own machine-checkable filename, heading, and link conventions.
 - Organize documentation around reader needs and tasks rather than mirroring
   source directories, except when product structure is itself the reference.
 
