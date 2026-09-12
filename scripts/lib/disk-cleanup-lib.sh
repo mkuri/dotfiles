@@ -18,8 +18,11 @@ bytes_to_human() {
   }'
 }
 
-ios_device_support_candidates() {
-  local keep=2
+# Reads version-like names on stdin and echoes the ones that are NOT among the
+# newest "$1" entries, ordered oldest first. Sorting is version-aware, so
+# "17.0" precedes "17.5" and "2025.3.4" precedes "2026.1.2".
+candidates_excluding_newest() {
+  local keep="$1"
   local names=()
   local line
   while IFS= read -r line; do
@@ -36,6 +39,41 @@ ios_device_support_candidates() {
   for (( i = 0; i < cutoff; i++ )); do
     echo "${names[$i]}"
   done
+}
+
+ios_device_support_candidates() {
+  candidates_excluding_newest 2
+}
+
+# Android Studio never prunes the per-release directories it leaves in
+# ~/Library/{Application Support,Caches,Logs}/Google, so they accumulate one
+# generation per upgrade. Three generations is enough to roll back to a
+# previous release without keeping the whole history.
+#
+# Stable and preview installs use different name prefixes ("AndroidStudio"
+# vs "AndroidStudioPreview") and carry independent version series, so they
+# are grouped by prefix and each keeps its own 3. Version-sorting the full
+# names instead would order every "AndroidStudioPreview..." entry after
+# every "AndroidStudio<digit>..." one regardless of release year, which
+# protects obsolete previews while offering recent stable releases for
+# deletion.
+android_studio_candidates() {
+  local names=() line
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && names+=("$line")
+  done
+
+  (( ${#names[@]} == 0 )) && return 0
+
+  local prefixes
+  prefixes=$(printf '%s\n' "${names[@]}" | sed 's/[0-9].*//' | sort -u)
+
+  local prefix name
+  while IFS= read -r prefix; do
+    for name in "${names[@]}"; do
+      [[ "${name%%[0-9]*}" == "$prefix" ]] && echo "$name"
+    done | candidates_excluding_newest 3
+  done <<< "$prefixes"
 }
 
 parse_confirmation() {
