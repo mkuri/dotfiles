@@ -49,8 +49,31 @@ ios_device_support_candidates() {
 # ~/Library/{Application Support,Caches,Logs}/Google, so they accumulate one
 # generation per upgrade. Three generations is enough to roll back to a
 # previous release without keeping the whole history.
+#
+# Stable and preview installs use different name prefixes ("AndroidStudio"
+# vs "AndroidStudioPreview") and carry independent version series, so they
+# are grouped by prefix and each keeps its own 3. Version-sorting the full
+# names instead would order every "AndroidStudioPreview..." entry after
+# every "AndroidStudio<digit>..." one regardless of release year, which
+# protects obsolete previews while offering recent stable releases for
+# deletion.
 android_studio_candidates() {
-  candidates_excluding_newest 3
+  local names=() line
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && names+=("$line")
+  done
+
+  (( ${#names[@]} == 0 )) && return 0
+
+  local prefixes
+  prefixes=$(printf '%s\n' "${names[@]}" | sed 's/[0-9].*//' | sort -u)
+
+  local prefix name
+  while IFS= read -r prefix; do
+    for name in "${names[@]}"; do
+      [[ "${name%%[0-9]*}" == "$prefix" ]] && echo "$name"
+    done | candidates_excluding_newest 3
+  done <<< "$prefixes"
 }
 
 parse_confirmation() {

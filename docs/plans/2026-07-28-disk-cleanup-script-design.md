@@ -67,7 +67,13 @@ a manual step or the blast radius is wider than this repo)
   The script takes the union of generation names across the three base
   directories, automatically excludes the 3 most recent, and prompts
   per-generation for the rest, deleting a confirmed generation from all
-  three base directories at once
+  three base directories at once. Stable and preview installs
+  (`AndroidStudio2026.1.2` vs `AndroidStudioPreview2024.1`) are separate
+  products with independent version series, so generations are grouped by
+  name prefix and each channel keeps its own 3. Version-sorting the full
+  basenames instead would order every preview entry after every stable one
+  regardless of release year, protecting obsolete previews while offering
+  recent stable releases for deletion
 - OrbStack / Docker — presented as two separate, separately-confirmed steps:
   1. `docker builder prune` (build cache only)
   2. `docker system prune -a --volumes` (all unused images/containers/

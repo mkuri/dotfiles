@@ -26,7 +26,7 @@ TARGETS=(
   "Playwright browser cache|$HOME/Library/Caches/ms-playwright|confirm||rm -rf \"$HOME/Library/Caches/ms-playwright\"/*|Requires manually running 'npx playwright install' again afterward."
   "Playwright-go browser cache|$HOME/Library/Caches/ms-playwright-go|confirm||rm -rf \"$HOME/Library/Caches/ms-playwright-go\"/*|Requires manually reinstalling Playwright-go browsers afterward."
   "Google Chrome cache|$HOME/Library/Caches/Google/Chrome|confirm||rm -rf \"$HOME/Library/Caches/Google/Chrome\"/*|Close Chrome first; this clears its HTTP cache, not your profile/bookmarks."
-  "Android Studio old generations|$HOME/Library/Caches/Google|confirm|||Keeps the 3 most recent Android Studio releases automatically; asks per older generation. Spans Application Support, Caches, and Logs.|android_studio"
+  "Android Studio old generations|$HOME/Library/Caches/Google|confirm|||Keeps the 3 most recent releases of each channel (stable and Preview count separately); asks per older generation. Spans Application Support, Caches, and Logs.|android_studio"
   "iOS DeviceSupport|$HOME/Library/Developer/Xcode/iOS DeviceSupport|confirm|command -v xcrun||Keeps the 2 most recent iOS versions automatically; asks per older version.|ios_device_support"
   "OrbStack (Docker data)|$HOME/Library/Group Containers/HUAQ24HBR6.dev.orbstack/data|confirm|command -v docker||Two separate steps: build-cache-only prune, then full unused image/volume prune (requires typing 'yes').|orbstack_docker"
   "Draw Things models|$HOME/Library/Containers/com.liuliu.draw-things/Data/Documents/Models|report-only|||Delete via Draw Things' own Model Zoo UI, not this script — the app tracks a manifest that file-only deletion would desync."
@@ -149,7 +149,7 @@ run_android_studio() {
   done < <(android_studio_generations)
 
   echo ""
-  echo "  Android Studio — keeping the 3 most recent generations automatically."
+  echo "  Android Studio — keeping the 3 most recent generations of each channel."
 
   if (( ${#generations[@]} == 0 )); then
     echo "  Skipped: no Android Studio directories found."
