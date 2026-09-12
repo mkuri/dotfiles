@@ -72,19 +72,34 @@ Never commit directly to `main` or `master`. Before staging or committing:
 
 This applies to code, documentation, configuration, and rules without exception.
 
-### Invoking shell commands with `cd`
+### Invoking git
 
-Don't put `cd <dir> &&` in a compound command that also runs `git` or redirects
-output (`>`, `2>`, ...). Both trip safety gates that allow-rules can't suppress
-(`cd` hides the real target from the permission analyzer; `git` may run the
-target repo's hooks), forcing an approval prompt every time — subagents too.
+Run git against the current working directory with no directory prefix at all:
+plain `git status`, `git commit`, `git push`. Do not write `cd <dir> && git ...`,
+and do not add `-C <dir>` when the target is already the working directory.
 
-Make the target explicit instead: `grep -rn X /abs/path`, `git -C <dir> <cmd>`,
-or split into separate calls. Plain `cd <dir> && <cmd>` with no `git` and no
-redirection (e.g. `cd app && flutter build`) is fine.
+Both forms defeat permission matching, for different reasons:
 
-Only rewrite for directories you trust. When `git` points at an untrusted or
-unknown repo, keep the prompt — hook execution is a real hazard there.
+- A `cd` into a different directory always prompts, because git there can run
+  that directory's hooks. Allow-rules cannot suppress it.
+- A `-C` prefix does not match a prefix allow-rule. An allow-rule for
+  `git push *` covers `git push origin main` but not `git -C . push origin main`,
+  so every such call asks again. Read-only git is exempt from prompting by
+  default, and a `-C` prefix forfeits that exemption too.
+
+For a repository other than the current working directory, prefer starting a
+session there, or adding it with `--add-dir`. When you must reach it from here,
+use `git -C <dir> <cmd>` and accept the prompt: it is the safe form, and the
+prompt is exactly the point at which git may run an unknown repository's hooks.
+
+### Invoking other shell commands with `cd`
+
+Don't put `cd <dir> &&` in a compound command that redirects output (`>`, `2>`,
+...); `cd` hides the redirect's real target from the permission analyzer,
+forcing an approval prompt every time — subagents too. Pass an explicit path
+instead: `grep -rn X /abs/path`, or split into separate calls. Plain
+`cd <dir> && <cmd>` with no `git` and no redirection (e.g. `cd app && flutter
+build`) is fine.
 
 ## Sensitive Files
 

@@ -15,7 +15,14 @@ from typing import Any
 
 
 SHARED_OBJECT_KEYS = ("enabledPlugins", "extraKnownMarketplaces")
-SHARED_KEYS = set(SHARED_OBJECT_KEYS)
+
+# Nested lists that dotfiles owns outright. Unlike SHARED_OBJECT_KEYS, which
+# merge key by key, these are replaced wholesale: a permission rule dropped from
+# shared-settings.json must disappear from every machine that syncs, and a union
+# would instead leave stale rules granted forever.
+SHARED_REPLACED_LISTS = {"permissions": ("allow", "ask", "deny")}
+
+SHARED_KEYS = set(SHARED_OBJECT_KEYS) | set(SHARED_REPLACED_LISTS)
 
 
 def parse_args() -> argparse.Namespace:
@@ -73,6 +80,21 @@ def validate_shared(data: dict[str, Any]) -> None:
     for key in SHARED_OBJECT_KEYS:
         if not isinstance(data.get(key), dict):
             raise ValueError(f"shared setting {key} must be an object")
+    for key, list_names in SHARED_REPLACED_LISTS.items():
+        section = data.get(key)
+        if not isinstance(section, dict):
+            raise ValueError(f"shared setting {key} must be an object")
+        if set(section) != set(list_names):
+            expected = ", ".join(sorted(list_names))
+            raise ValueError(f"shared setting {key} must define exactly: {expected}")
+        for name in list_names:
+            value = section[name]
+            if not isinstance(value, list) or not all(
+                isinstance(item, str) for item in value
+            ):
+                raise ValueError(
+                    f"shared setting {key}.{name} must be a list of strings"
+                )
 
 
 def resolve_lexically(path: Path) -> Path:
@@ -95,6 +117,17 @@ def merge_settings(target: dict[str, Any], shared: dict[str, Any]) -> dict[str, 
         if not isinstance(existing, dict):
             raise ValueError(f"target setting {key} must be an object")
         existing.update(copy.deepcopy(shared[key]))
+    for key, list_names in SHARED_REPLACED_LISTS.items():
+        existing = merged.get(key)
+        if existing is None:
+            existing = {}
+            merged[key] = existing
+        if not isinstance(existing, dict):
+            raise ValueError(f"target setting {key} must be an object")
+        # Replace only the listed names so sibling settings the shared fragment
+        # says nothing about, such as permissions.defaultMode, stay local.
+        for name in list_names:
+            existing[name] = copy.deepcopy(shared[key][name])
     return merged
 
 

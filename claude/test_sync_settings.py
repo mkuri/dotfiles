@@ -44,6 +44,57 @@ class SyncSettingsTest(unittest.TestCase):
             self.assertTrue(result["enabledPlugins"]["swift-lsp@claude-plugins-official"])
             self.assertEqual(result["extraKnownMarketplaces"]["local"]["source"], "local")
 
+    def test_replaces_permission_lists_and_keeps_sibling_settings(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "settings.json"
+            target.write_text(
+                json.dumps(
+                    {
+                        "permissions": {
+                            "allow": ["Bash(stale-rule *)"],
+                            "defaultMode": "acceptEdits",
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            sync_settings.synchronize(
+                target,
+                SHARED_SETTINGS,
+                Path(directory) / "legacy-settings.json",
+                apply=True,
+            )
+
+            result = json.loads(target.read_text(encoding="utf-8"))
+            permissions = result["permissions"]
+            shared = json.loads(SHARED_SETTINGS.read_text(encoding="utf-8"))
+            self.assertNotIn("Bash(stale-rule *)", permissions["allow"])
+            self.assertEqual(permissions["allow"], shared["permissions"]["allow"])
+            self.assertEqual(permissions["ask"], shared["permissions"]["ask"])
+            self.assertEqual(permissions["deny"], shared["permissions"]["deny"])
+            self.assertEqual(permissions["defaultMode"], "acceptEdits")
+
+    def test_rejects_shared_permissions_with_missing_list(self) -> None:
+        shared = {
+            "enabledPlugins": {},
+            "extraKnownMarketplaces": {},
+            "permissions": {"allow": [], "deny": []},
+        }
+
+        with self.assertRaisesRegex(ValueError, "must define exactly"):
+            sync_settings.validate_shared(shared)
+
+    def test_rejects_shared_permission_rule_that_is_not_a_string(self) -> None:
+        shared = {
+            "enabledPlugins": {},
+            "extraKnownMarketplaces": {},
+            "permissions": {"allow": [123], "ask": [], "deny": []},
+        }
+
+        with self.assertRaisesRegex(ValueError, r"permissions\.allow must be a list"):
+            sync_settings.validate_shared(shared)
+
     def test_second_apply_does_not_rewrite_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             target = Path(directory) / "settings.json"
