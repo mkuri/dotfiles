@@ -55,8 +55,19 @@ a manual step or the blast radius is wider than this repo)
 - Playwright browser cache (`ms-playwright`, `ms-playwright-go`) — deleting
   requires manually re-running `npx playwright install` afterward; the
   prompt notes this
-- Google Chrome cache (`~/Library/Caches/Google/...`, not the profile in
-  Application Support) — prompt recommends closing Chrome first
+- Google Chrome cache (`~/Library/Caches/Google/Chrome`, not the profile in
+  Application Support) — prompt recommends closing Chrome first. Scoped to
+  the `Chrome` subdirectory rather than all of `~/Library/Caches/Google`,
+  which Android Studio also writes into
+- Android Studio old generations — Android Studio creates a per-release
+  directory under each of `~/Library/Application Support/Google`,
+  `~/Library/Caches/Google`, and `~/Library/Logs/Google`, imports settings
+  from the previous release on first launch, and never removes the old ones,
+  so they accumulate one generation per upgrade (roughly 0.5–1.5 GB each).
+  The script takes the union of generation names across the three base
+  directories, automatically excludes the 3 most recent, and prompts
+  per-generation for the rest, deleting a confirmed generation from all
+  three base directories at once
 - OrbStack / Docker — presented as two separate, separately-confirmed steps:
   1. `docker builder prune` (build cache only)
   2. `docker system prune -a --volumes` (all unused images/containers/

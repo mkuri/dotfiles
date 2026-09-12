@@ -25,7 +25,8 @@ TARGETS=(
   "node-gyp cache|$HOME/Library/Caches/node-gyp|auto-safe||rm -rf \"$HOME/Library/Caches/node-gyp\"/*|node-gyp re-downloads headers into this cache on demand."
   "Playwright browser cache|$HOME/Library/Caches/ms-playwright|confirm||rm -rf \"$HOME/Library/Caches/ms-playwright\"/*|Requires manually running 'npx playwright install' again afterward."
   "Playwright-go browser cache|$HOME/Library/Caches/ms-playwright-go|confirm||rm -rf \"$HOME/Library/Caches/ms-playwright-go\"/*|Requires manually reinstalling Playwright-go browsers afterward."
-  "Google Chrome cache|$HOME/Library/Caches/Google|confirm||rm -rf \"$HOME/Library/Caches/Google\"/*|Close Chrome first; this clears its HTTP cache, not your profile/bookmarks."
+  "Google Chrome cache|$HOME/Library/Caches/Google/Chrome|confirm||rm -rf \"$HOME/Library/Caches/Google/Chrome\"/*|Close Chrome first; this clears its HTTP cache, not your profile/bookmarks."
+  "Android Studio old generations|$HOME/Library/Caches/Google|confirm|||Keeps the 3 most recent Android Studio releases automatically; asks per older generation. Spans Application Support, Caches, and Logs.|android_studio"
   "iOS DeviceSupport|$HOME/Library/Developer/Xcode/iOS DeviceSupport|confirm|command -v xcrun||Keeps the 2 most recent iOS versions automatically; asks per older version.|ios_device_support"
   "OrbStack (Docker data)|$HOME/Library/Group Containers/HUAQ24HBR6.dev.orbstack/data|confirm|command -v docker||Two separate steps: build-cache-only prune, then full unused image/volume prune (requires typing 'yes').|orbstack_docker"
   "Draw Things models|$HOME/Library/Containers/com.liuliu.draw-things/Data/Documents/Models|report-only|||Delete via Draw Things' own Model Zoo UI, not this script — the app tracks a manifest that file-only deletion would desync."
@@ -88,6 +89,108 @@ run_ios_device_support() {
     local after_kb after_bytes freed
     after_kb=$(du -sk "$version_path" 2>/dev/null | awk '{print $1}')
     after_kb=${after_kb:-0}
+    after_bytes=$(( after_kb * 1024 ))
+    freed=$(( before_bytes - after_bytes ))
+    (( freed < 0 )) && freed=0
+    echo "  Freed $(bytes_to_human "$freed")."
+    TOTAL_FREED_BYTES=$(( TOTAL_FREED_BYTES + freed ))
+  done
+}
+
+# Android Studio spreads each release across three base directories and never
+# removes the ones belonging to releases that are no longer installed.
+ANDROID_STUDIO_BASES=(
+  "$HOME/Library/Application Support/Google"
+  "$HOME/Library/Caches/Google"
+  "$HOME/Library/Logs/Google"
+)
+
+# Echoes every AndroidStudio<version> directory name present under any base,
+# deduplicated. A generation usually exists in all three bases, but a release
+# that was never launched may only have some of them.
+android_studio_generations() {
+  local base dirname
+  for base in "${ANDROID_STUDIO_BASES[@]}"; do
+    [[ -d "$base" ]] || continue
+    while IFS= read -r dirname; do
+      [[ -n "$dirname" ]] && echo "$dirname"
+    done < <(find "$base" -mindepth 1 -maxdepth 1 -type d -name 'AndroidStudio*' -exec basename {} \;)
+  done | sort -u
+}
+
+# Total size in KB of one generation across every base directory.
+android_studio_generation_kb() {
+  local generation="$1"
+  local total=0 base path kb
+  for base in "${ANDROID_STUDIO_BASES[@]}"; do
+    path="$base/$generation"
+    [[ -d "$path" ]] || continue
+    kb=$(du -sk "$path" 2>/dev/null | awk '{print $1}')
+    total=$(( total + ${kb:-0} ))
+  done
+  echo "$total"
+}
+
+# main() calls size_<handler> when it exists, so the summary table reports the
+# real footprint instead of the unrelated Caches/Google path.
+size_android_studio() {
+  local total=0 generation
+  while IFS= read -r generation; do
+    [[ -n "$generation" ]] || continue
+    total=$(( total + $(android_studio_generation_kb "$generation") ))
+  done < <(android_studio_generations)
+  echo "$total"
+}
+
+run_android_studio() {
+  local generations=() generation
+  while IFS= read -r generation; do
+    [[ -n "$generation" ]] && generations+=("$generation")
+  done < <(android_studio_generations)
+
+  echo ""
+  echo "  Android Studio — keeping the 3 most recent generations automatically."
+
+  if (( ${#generations[@]} == 0 )); then
+    echo "  Skipped: no Android Studio directories found."
+    return
+  fi
+
+  local candidates
+  candidates=$(printf '%s\n' "${generations[@]}" | android_studio_candidates)
+
+  if [[ -z "$candidates" ]]; then
+    echo "  No old generations to remove (3 or fewer present)."
+    return
+  fi
+
+  local candidates_list=()
+  while IFS= read -r generation; do
+    [[ -n "$generation" ]] && candidates_list+=("$generation")
+  done <<< "$candidates"
+
+  local i before_kb before_bytes answer decision base path
+  for (( i = 0; i < ${#candidates_list[@]}; i++ )); do
+    generation="${candidates_list[$i]}"
+    before_kb=$(android_studio_generation_kb "$generation")
+    before_bytes=$(( before_kb * 1024 ))
+
+    echo "  $generation — $(bytes_to_human "$before_bytes")"
+    read -r -p "  Delete this older generation? [y/N] " answer
+    decision=$(parse_confirmation "$answer" "n")
+
+    if [[ "$decision" != "yes" ]]; then
+      echo "  Skipped."
+      continue
+    fi
+
+    for base in "${ANDROID_STUDIO_BASES[@]}"; do
+      path="$base/$generation"
+      [[ -d "$path" ]] && rm -rf "$path"
+    done
+
+    local after_kb after_bytes freed
+    after_kb=$(android_studio_generation_kb "$generation")
     after_bytes=$(( after_kb * 1024 ))
     freed=$(( before_bytes - after_bytes ))
     (( freed < 0 )) && freed=0
@@ -206,8 +309,13 @@ main() {
   for record in "${TARGETS[@]}"; do
     IFS='|' read -r name path tier check_cmd clean_cmd note handler <<< "$record"
 
+    # A handler whose footprint is not a single directory provides
+    # size_<handler>; everything else is measured from its path.
     size_kb=0
-    if [[ -e "$path" ]]; then
+    if [[ -n "$handler" ]] && declare -F "size_$handler" >/dev/null; then
+      size_kb=$("size_$handler")
+      size_kb=${size_kb:-0}
+    elif [[ -e "$path" ]]; then
       size_kb=$(du -sk "$path" 2>/dev/null | awk '{print $1}')
       size_kb=${size_kb:-0}
     fi
@@ -255,6 +363,9 @@ main() {
         ;;
       orbstack_docker)
         run_orbstack_docker "${PATHS[$i]}"
+        ;;
+      android_studio)
+        run_android_studio
         ;;
       "")
         run_generic_target "${NAMES[$i]}" "${PATHS[$i]}" "${TIERS[$i]}" "${CHECK_CMDS[$i]}" "${CLEAN_CMDS[$i]}" "${NOTES[$i]}"

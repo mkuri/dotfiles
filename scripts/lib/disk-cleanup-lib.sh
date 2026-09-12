@@ -18,8 +18,11 @@ bytes_to_human() {
   }'
 }
 
-ios_device_support_candidates() {
-  local keep=2
+# Reads version-like names on stdin and echoes the ones that are NOT among the
+# newest "$1" entries, ordered oldest first. Sorting is version-aware, so
+# "17.0" precedes "17.5" and "2025.3.4" precedes "2026.1.2".
+candidates_excluding_newest() {
+  local keep="$1"
   local names=()
   local line
   while IFS= read -r line; do
@@ -36,6 +39,18 @@ ios_device_support_candidates() {
   for (( i = 0; i < cutoff; i++ )); do
     echo "${names[$i]}"
   done
+}
+
+ios_device_support_candidates() {
+  candidates_excluding_newest 2
+}
+
+# Android Studio never prunes the per-release directories it leaves in
+# ~/Library/{Application Support,Caches,Logs}/Google, so they accumulate one
+# generation per upgrade. Three generations is enough to roll back to a
+# previous release without keeping the whole history.
+android_studio_candidates() {
+  candidates_excluding_newest 3
 }
 
 parse_confirmation() {
