@@ -64,8 +64,10 @@ Never commit directly to `main` or `master`. Before staging or committing:
 1. Check the current branch with `git branch --show-current`.
 2. If it is `main` or `master`, stop and create a descriptively named feature
    branch such as `feat/add-login`, `fix/null-pointer`, or `chore/update-deps`.
-3. Confirm the branch name with the user before creating it unless the user has
-   already approved that exact name.
+3. Derive that name from the work itself and create it without asking the user
+   to confirm it. A branch name is cheap to change, so the confirmation is not
+   worth the interruption. Use the exact name the user supplied when they gave
+   one, and state the name you created in your next message.
 4. Stage and commit only after moving to the feature branch.
 
 This applies to code, documentation, configuration, and rules without exception.
