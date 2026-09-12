@@ -57,8 +57,9 @@ report its number, labels, state, and URL.
 ## Prepare a change
 
 1. Confirm the repository and inspect the current branch.
-2. If the branch is `main` or `master`, obtain approval for the exact new
-   branch name before creating it.
+2. If the branch is `main` or `master`, create a descriptively named feature
+   branch without asking for approval of the name, and report the name you
+   chose.
 3. Inspect tracked changes without reading ignored or sensitive files.
 4. Stage only explicit paths in scope. Never use `git add -A` or `git add .` in
    a mixed worktree.
