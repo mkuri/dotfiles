@@ -103,7 +103,7 @@ build`) is fine.
 
 ## Code Review
 
-### Verify the Review Target
+### Specify and Verify the Review Target
 
 Before trusting or reporting results from `/code-review` (any effort level),
 confirm what was actually reviewed matches the intended work: the branch name
@@ -120,6 +120,11 @@ of cwd-context failure). A review that silently targets the wrong commits
 still returns findings — often "no issues" — that read as a clean pass while
 having reviewed nothing relevant, wasting the review's cost without surfacing
 the mistake.
+
+When delegating a `/code-review` call to another agent, restate this
+instruction explicitly in the delegation prompt; a delegated agent does not
+inherit it from this file (see Sensitive Files for the same delegation
+pattern).
 
 ## Sensitive Files
 
