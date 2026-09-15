@@ -113,6 +113,23 @@ install_shared_skills() {
   done
 }
 
+install_pr_comment_tools() {
+  link_path "$DOTFILES_DIR/agents/skills/mkuri/manage-github-repo/scripts/github-pr-comment" \
+    "$TARGET_HOME/.local/bin/github-pr-comment" || return 1
+  link_path "$DOTFILES_DIR/codex/rules/github-pr-comments.rules" \
+    "$TARGET_HOME/.codex/rules/github-pr-comments.rules"
+}
+
+case "${1-}" in
+  --pr-comments-only)
+    install_pr_comment_tools || exit 1
+    sync_claude_settings || setup_status=1
+    exit "$setup_status"
+    ;;
+  "") ;;
+  *) echo "Usage: $0 [--pr-comments-only]" >&2; exit 2 ;;
+esac
+
 # Shared instructions.
 link_path "$DOTFILES_DIR/agents/AGENTS.md" "$TARGET_HOME/.codex/AGENTS.md" || setup_status=1
 link_path "$DOTFILES_DIR/agents/AGENTS.md" "$TARGET_HOME/.claude/CLAUDE.md" || setup_status=1
@@ -127,6 +144,7 @@ link_path "$DOTFILES_DIR/agents/AGENTS.md" "$TARGET_HOME/.gemini/GEMINI.md" || s
 
 # Codex-specific configuration.
 sync_codex_config || setup_status=1
+install_pr_comment_tools || exit 1
 
 # Claude Code-specific configuration.
 sync_claude_settings || setup_status=1

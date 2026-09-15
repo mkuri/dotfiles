@@ -26,6 +26,8 @@ The installer creates these links without replacing unrelated existing files:
 ~/.claude/hooks                              -> claude/hooks
 ~/.codex/AGENTS.md                           -> agents/AGENTS.md
 ~/.codex/skills/<skill>                      -> agents/skills/{mkuri,vendor}/<skill>
+~/.codex/rules/github-pr-comments.rules      -> codex/rules/github-pr-comments.rules
+~/.local/bin/github-pr-comment              -> agents/skills/mkuri/manage-github-repo/scripts/github-pr-comment
 ~/.gemini/GEMINI.md                          -> agents/AGENTS.md
 ~/.gemini/config/hooks.json                  -> antigravity/config/hooks.json
 ```
@@ -50,9 +52,9 @@ python3 codex/sync_config.py --apply
 ```
 
 `~/.claude/settings.json` is also kept as a regular local file. The installer
-merges only the portable plugin and marketplace settings from
-`claude/shared-settings.json`, preserving hooks, UI preferences, and every
-other local setting. It migrates the expected legacy dotfiles symlink without
+merges the portable plugin and marketplace settings and replaces the shared
+permission lists from `claude/shared-settings.json`, preserving hooks, UI
+preferences, and other local settings. It migrates the expected legacy dotfiles symlink without
 changing its source. The legacy `claude/settings.json` remains temporarily as
 the migration source and will be removed in a later cleanup.
 
@@ -113,3 +115,32 @@ global **Any changes** setting so connector reads run automatically while
 external writes require approval. Browser reads and localhost implementation
 checks can run automatically; submitting data or changing an external site
 should remain interactive.
+
+## PR comment execution permissions
+
+Claude and Codex allow the installed `github-pr-comment` command to post PR
+conversation comments, reply to review comments, add reactions and resolve
+review threads. Agents decide the content and actions; the command validates
+the target PR and executes a batch. Existing direct `gh api` permissions remain
+unchanged. This allowance does not apply to connectors or browsers.
+
+Run `./agents/setup.sh` to install the command, synchronize Claude settings and
+link the dedicated Codex rule file. Use `./agents/setup.sh --pr-comments-only`
+to install just these command/rule links and synchronize Claude shared settings.
+Keep `~/.local/bin` on `PATH` and confirm
+`command -v github-pr-comment` resolves to that installed command. Restart agent
+sessions after installation. Existing managed deny/ask/prompt rules may still
+take precedence; do not remove them without inspecting their scope.
+
+See the [request schema and retry instructions](skills/mkuri/manage-github-repo/references/pr-comment-actions.md)
+and [design](../docs/designs/pr-comment-permissions.md). Private journals under
+`~/.local/state/github-pr-comment` must be retained when retrying a batch.
+
+Validate the helper and shared settings without posting to GitHub:
+
+```sh
+python3 -m unittest discover -s agents/skills/mkuri/manage-github-repo/scripts -p 'test_*.py'
+python3 -m unittest discover -s claude -p 'test_*.py'
+python3 -m unittest discover -s codex -p 'test_*.py'
+codex execpolicy check --rules codex/rules/github-pr-comments.rules -- github-pr-comment --request-file /tmp/pr-actions.json
+```
