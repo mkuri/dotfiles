@@ -189,6 +189,40 @@ docs/
 - Organize documentation around reader needs and tasks rather than mirroring
   source directories, except when product structure is itself the reference.
 
+### Documentation Sites
+
+- Use Astro + Starlight by default when a personal project needs a browsable
+  or published documentation site. Plain Markdown under `docs/` remains
+  sufficient until a site is needed.
+- Prefer Markdown for ordinary content. Use MDX only where components
+  materially improve the documentation, keeping framework-specific markup
+  limited to the content that needs it.
+- Use Starlight's default appearance with minimal customization.
+- Use HTML for complex tables initially. Introduce shared components when
+  recurring examples justify them; avoid designing a universal table component
+  before the actual requirements are known.
+- Prefer PlantUML for diagrams. Keep diagram sources in Git and render them
+  to SVG for inclusion in documents.
+- Add documentation versioning and multi-repository aggregation only when
+  concrete requirements arise.
+- Preserve existing documentation tools unless a migration is explicitly
+  requested. Consider Antora when AsciiDoc authoring, complex tables, or
+  versioned multi-repository documentation are central requirements.
+
+#### Deployment
+
+- For solo private documentation, use local previews until remote access or
+  sharing is needed.
+- For publicly readable documentation, default to GitHub Pages, building the
+  static site with GitHub Actions and publishing the generated output.
+- For documentation requiring restricted online access, default to Cloudflare
+  Pages with Cloudflare Access authentication. Protect all reachable production
+  and preview URLs, including the `pages.dev` hostname and any custom domains;
+  verify access restrictions before publishing private content.
+- Treat source-repository visibility and site access control separately. A
+  private repository does not make its generated site private, and Cloudflare
+  Pages alone is not an access-control policy.
+
 ### Design Documents
 
 - Keep one living design document per feature, committed to git, named for the
