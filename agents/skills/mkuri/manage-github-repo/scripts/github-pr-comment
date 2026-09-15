@@ -1,0 +1,231 @@
+#!/usr/bin/env python3
+"""Apply a validated batch of PR comment actions through GitHub CLI."""
+
+import argparse
+import fcntl
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+import tempfile
+
+
+THREAD_QUERY = """query($id: ID!) { node(id: $id) {
+  ... on PullRequestReviewThread {
+    id isResolved pullRequest { number repository { nameWithOwner } }
+  }
+} }"""
+RESOLVE = """mutation($id: ID!) {
+  resolveReviewThread(input: {threadId: $id}) { thread { id isResolved } }
+}"""
+REACTIONS = {"+1", "-1", "laugh", "confused", "heart", "hooray", "rocket", "eyes"}
+
+
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def positive(value):
+    return type(value) is int and value > 0
+
+
+def validate(request):
+    require(isinstance(request, dict) and set(request) ==
+            {"request_id", "repo", "pr", "actions"}, "Invalid request fields")
+    require(isinstance(request["request_id"], str) and
+            re.fullmatch(r"[A-Za-z0-9_-]{8,80}", request["request_id"]),
+            "request_id must contain 8-80 letters, digits, underscores or hyphens")
+    require(isinstance(request["repo"], str) and
+            re.fullmatch(r"[A-Za-z0-9_-]+/[A-Za-z0-9_.-]+", request["repo"]) and
+            request["repo"].split("/")[1] not in {".", ".."}, "Invalid repository")
+    require(positive(request["pr"]), "Invalid PR number")
+    require(isinstance(request["actions"], list) and
+            1 <= len(request["actions"]) <= 100, "Expected 1-100 actions")
+    fields = {"comment": {"body"}, "reply": {"comment_id", "body"},
+              "react": {"comment_id", "content", "surface"}, "resolve": {"thread_id"}}
+    for action in request["actions"]:
+        require(isinstance(action, dict), "Invalid action")
+        kind = action.get("type")
+        require(isinstance(kind, str) and kind in fields, "Unsupported action")
+        require(set(action) == fields[kind] | {"type"}, "Invalid action fields")
+        if "body" in action:
+            require(isinstance(action["body"], str) and action["body"].strip() and
+                    len(action["body"]) <= 60000 and "\x00" not in action["body"],
+                    "Expected nonempty body up to 60000 characters")
+        if "comment_id" in action:
+            require(positive(action["comment_id"]), "Invalid comment ID")
+        if kind == "react":
+            require(isinstance(action["content"], str) and action["content"] in REACTIONS,
+                    "Invalid reaction")
+            require(action["surface"] in ("review", "conversation"), "Invalid surface")
+        if kind == "resolve":
+            require(isinstance(action["thread_id"], str) and
+                    re.fullmatch(r"[A-Za-z0-9_=-]{1,200}", action["thread_id"]),
+                    "Invalid thread ID")
+
+
+class GitHub:
+    def api(self, endpoint, payload=None, paginate=False):
+        command = ["gh", "api", "--hostname", "github.com", endpoint,
+                   "--method", "POST" if payload is not None else "GET"]
+        if payload is not None:
+            command += ["--input", "-"]
+        if paginate:
+            command += ["--paginate", "--slurp"]
+        environment = dict(os.environ, GH_PROMPT_DISABLED="1", GH_DEBUG="")
+        try:
+            result = subprocess.run(command, input=json.dumps(payload) if payload is not None else None,
+                                    capture_output=True, text=True, timeout=60, env=environment)
+        except subprocess.TimeoutExpired as error:
+            raise RuntimeError("GitHub request timed out; rerun the same request to reconcile") from error
+        require(result.returncode == 0, "GitHub request failed; check authentication, access and target")
+        value = json.loads(result.stdout)
+        require(not isinstance(value, dict) or not value.get("errors"), "GitHub GraphQL error")
+        return [item for page in value for item in page] if paginate else value
+
+    def thread(self, thread_id):
+        value = self.api("graphql", {"query": THREAD_QUERY, "variables": {"id": thread_id}})
+        node = value["data"]["node"]
+        require(node and "pullRequest" in node, "Expected a review thread")
+        return node
+
+
+def preflight(request, github):
+    repo, pr = request["repo"], request["pr"]
+    base = f"repos/{repo}"
+    pull = github.api(f"{base}/pulls/{pr}")
+    require(pull.get("number") == pr, "Expected a pull request")
+    for action in request["actions"]:
+        if action["type"] in ("reply", "react"):
+            review = action.get("surface", "review") == "review"
+            path = "pulls/comments" if review else "issues/comments"
+            comment = github.api(f"{base}/{path}/{action['comment_id']}")
+            url_key, resource = ("pull_request_url", "pulls") if review else ("issue_url", "issues")
+            expected = f"https://api.github.com/{base}/{resource}/{pr}"
+            require(comment.get(url_key, "").lower() == expected.lower(),
+                    "Comment does not belong to the specified PR")
+            if action["type"] == "reply":
+                require(not comment.get("in_reply_to_id"), "Reply must target the root review comment")
+        elif action["type"] == "resolve":
+            pull = github.thread(action["thread_id"])["pullRequest"]
+            require(pull["number"] == pr and
+                    pull["repository"]["nameWithOwner"].lower() == repo.lower(),
+                    "Thread does not belong to the specified PR")
+
+
+def fingerprint(value):
+    return hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()
+
+
+def result_summary(value):
+    return {key: value[key] for key in ("id", "html_url", "created_at", "isResolved") if key in value}
+
+
+def execute_action(request, index, github, actor, pending, before_send):
+    action = request["actions"][index]
+    kind = action["type"]
+    base = f"repos/{request['repo']}"
+    pr = request["pr"]
+    if kind in ("comment", "reply"):
+        marker = f"<!-- github-pr-comment:{fingerprint(request)}:{index} -->"
+        collection = f"{base}/issues/{pr}/comments" if kind == "comment" else f"{base}/pulls/{pr}/comments"
+        for comment in github.api(collection, paginate=True):
+            if (marker in comment.get("body", "") and comment.get("user", {}).get("id") == actor
+                    and (kind == "comment" or comment.get("in_reply_to_id") == action["comment_id"])):
+                return result_summary(comment)
+        require(not pending, "Uncertain comment delivery; no matching post found. Inspect GitHub before any new request")
+        endpoint = collection if kind == "comment" else f"{base}/pulls/{pr}/comments/{action['comment_id']}/replies"
+        before_send()
+        return result_summary(github.api(endpoint, {"body": action["body"] + "\n\n" + marker}))
+    if kind == "react":
+        path = "pulls/comments" if action["surface"] == "review" else "issues/comments"
+        endpoint = f"{base}/{path}/{action['comment_id']}/reactions"
+        for reaction in github.api(endpoint, paginate=True):
+            if reaction.get("user", {}).get("id") == actor and reaction["content"] == action["content"]:
+                return result_summary(reaction)
+        before_send()
+        return result_summary(github.api(endpoint, {"content": action["content"]}))
+    thread = github.thread(action["thread_id"])
+    if not thread["isResolved"]:
+        before_send()
+        value = github.api("graphql", {"query": RESOLVE, "variables": {"id": action["thread_id"]}})
+        thread = value["data"]["resolveReviewThread"]["thread"]
+        require(thread and thread.get("isResolved"), "Thread was not resolved")
+    return result_summary(thread)
+
+
+def save(path, value):
+    with tempfile.NamedTemporaryFile(mode="w", dir=path.parent, delete=False) as stream:
+        temporary = Path(stream.name)
+        json.dump(value, stream)
+        stream.flush()
+        os.fsync(stream.fileno())
+    os.replace(temporary, path)
+    directory = os.open(path.parent, os.O_RDONLY)
+    try:
+        os.fsync(directory)
+    finally:
+        os.close(directory)
+
+
+def run(request, github, state_dir):
+    validate(request)
+    state_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+    require(not state_dir.is_symlink() and state_dir.stat().st_uid == os.getuid() and
+            state_dir.stat().st_mode & 0o077 == 0, "State directory must be private and owned by this user")
+    key = fingerprint({key: request[key] for key in ("repo", "pr", "request_id")})
+    path = state_dir / (key + ".json")
+    lock_fd = os.open(state_dir / "lock", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+    with os.fdopen(lock_fd, "w") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as error:
+            raise ValueError("Another PR comment batch is running; retry after it finishes") from error
+        require(not path.is_symlink(), "Refusing a symlinked journal")
+        state = json.loads(path.read_text()) if path.exists() else {
+            "fingerprint": fingerprint(request), "completed": [], "pending": None}
+        require(state["fingerprint"] == fingerprint(request), "Request ID already used with different content")
+        preflight(request, github)
+        actor = github.api("user")["id"]
+        require(state.get("actor", actor) == actor, "Resume with the original GitHub account")
+        state["actor"] = actor
+        for index in range(len(state["completed"]), len(request["actions"])):
+            pending = state["pending"] == index
+            def before_send():
+                state["pending"] = index
+                save(path, state)
+
+            try:
+                result = execute_action(request, index, github, actor, pending, before_send)
+            except (ValueError, RuntimeError, OSError, KeyError, TypeError) as error:
+                return {"status": "incomplete", "completed": state["completed"],
+                        "pending": index, "remaining": list(range(index + 1, len(request["actions"]))),
+                        "error": str(error), "request_id": request["request_id"]}
+            state["completed"].append({"index": index, "result": result})
+            state["pending"] = None
+            save(path, state)
+        return {"status": "complete", "completed": state["completed"], "request_id": request["request_id"]}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--request-file", type=Path, required=True)
+    parser.add_argument("--validate-only", action="store_true", help="Validate JSON without network or state writes")
+    args = parser.parse_args()
+    try:
+        request = json.loads(args.request_file.read_text())
+        validate(request)
+        result = {"status": "valid"} if args.validate_only else run(
+            request, GitHub(), Path.home() / ".local/state/github-pr-comment")
+    except (ValueError, RuntimeError, OSError, KeyError, TypeError) as error:
+        result = {"status": "error", "error": str(error)}
+    print(json.dumps(result))
+    return 0 if result["status"] in ("complete", "valid") else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -111,9 +111,9 @@ The two directions use different mechanisms:
 
 - Claude authored the change → request a Codex review by posting `@codex review`
   as a top-level pull request comment with the selected transport
-  (`gh pr comment <number> --repo <owner>/<repo> --body '@codex review'` or the
-  corresponding GitHub MCP tool). The Codex GitHub app runs the review in the
-  cloud.
+  using a `comment` action through `github-pr-comment` (see
+  [PR comment actions](references/pr-comment-actions.md)), or the corresponding
+  GitHub MCP fallback. The Codex GitHub app runs the review in the cloud.
 - Codex authored the change → the review is performed by Claude Code running
   locally on the user's machine, on the Claude Max subscription. Do not post
   `@claude review`: managed cloud review needs a Team or Enterprise plan, and the
@@ -169,18 +169,9 @@ findings as JSON on stdout, `1` with a clean-pass comment as JSON, or `2` (a
 single-command timeouts) — re-invoke the script on exit `2` to keep polling
 rather than treating it as a final answer.
 
-`gh pr comment` prints only the new comment's URL, not its `created_at`, so
-`since_iso8601` is not available from that command's own output. Fetch it
-right after posting, before launching the poller. This endpoint defaults to
-30 items per page in ascending order, so on a pull request with more history
-`.[-1]` on an unpaginated call would silently return a stale comment instead
-of the one just posted; `--slurp` cannot be combined with `gh api`'s own
-`--jq`, so pipe to a separate `jq` and flatten with `.[][]` as
-`poll-codex-review.sh` does:
-
-```
-gh api --paginate --slurp "repos/<owner>/<repo>/issues/<number>/comments" | jq -r '[.[][]] | last.created_at'
-```
+The `github-pr-comment` result includes the trigger comment's `created_at`.
+Pass that exact timestamp to the poller; do not infer it from the last comment
+in the PR, which may belong to another actor.
 
 The Codex review arrives asynchronously as a pull request comment from the
 Codex GitHub app, so its arrival can be detected without the user pasting
@@ -207,22 +198,18 @@ user running `/review`, not to an event with observable state.
 
 ### Respond to review comments
 
-For each individual review comment addressed with a fix, close its thread
-explicitly instead of leaving it to a summary reply:
+Use `github-pr-comment` for authorized PR conversation posts, review replies,
+reactions and thread resolution. Read [PR comment actions](references/pr-comment-actions.md)
+for the JSON schema, result handling and retry constraints. The installed command
+has dedicated Claude and Codex execution allowances; direct `gh api` mutations
+retain their existing approval policy.
 
-1. React to the comment to acknowledge it, using `gh api -X POST
-   repos/<owner>/<repo>/pulls/comments/<comment id>/reactions -f content=+1`
-   or the corresponding GitHub MCP tool.
-2. Reply on the same thread referencing the commit that fixes it, using `gh api
-   -X POST repos/<owner>/<repo>/pulls/<number>/comments -f body='Fixed in
-   <sha>.' -F in_reply_to=<comment id>` or the corresponding GitHub MCP tool.
-3. Resolve the conversation once the reply is posted, using `gh api graphql`
-   with the `resolveReviewThread` mutation against the thread's node ID
-   (fetched via the `reviewThreads` GraphQL query on the pull request), or the
-   corresponding GitHub MCP tool.
-
-Do this per comment, not only once at the top level, so each finding's thread
-shows its own reaction, reply, and resolution.
+For each finding addressed with a fix, have the agent choose an acknowledgment
+reaction, write a reply referencing the fixing commit, and resolve the thread
+when appropriate. Put those actions in that order in one batch. The command
+validates membership, executes the decisions and stops on failure; it does not
+judge whether a finding has been fixed. Follow the same-thread workflow per
+finding rather than replacing it with a top-level summary.
 
 ### Re-review after fixes
 

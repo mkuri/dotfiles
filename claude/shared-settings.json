@@ -17,6 +17,7 @@
   },
   "permissions": {
     "allow": [
+      "Bash(github-pr-comment *)",
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(git switch *)",

@@ -1,0 +1,7 @@
+# The installed command validates PR ownership and exposes only comment actions.
+prefix_rule(
+    pattern = ["github-pr-comment"],
+    decision = "allow",
+    match = ["github-pr-comment --request-file /tmp/pr-actions.json"],
+    not_match = ["gh api graphql", "gh api -X DELETE repos/owner/repo"],
+)
