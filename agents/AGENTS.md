@@ -101,6 +101,26 @@ instead: `grep -rn X /abs/path`, or split into separate calls. Plain
 `cd <dir> && <cmd>` with no `git` and no redirection (e.g. `cd app && flutter
 build`) is fine.
 
+## Code Review
+
+### Verify the Review Target
+
+Before trusting or reporting results from `/code-review` (any effort level),
+confirm what was actually reviewed matches the intended work: the branch name
+and file paths in the findings, not just "it ran without error."
+
+When invoking `/code-review` from a worktree, or from a background or
+coordination session that is not itself checked out on the branch under
+review, always pass an explicit target — a branch name, PR number, or path —
+instead of relying on the skill's implicit "current diff" detection. Implicit
+detection resolves against the invoking session's own git context, which can
+silently diverge from the worktree or branch the actual changes live on (see
+Branch Protection → Invoking other shell commands with `cd` for the same class
+of cwd-context failure). A review that silently targets the wrong commits
+still returns findings — often "no issues" — that read as a clean pass while
+having reviewed nothing relevant, wasting the review's cost without surfacing
+the mistake.
+
 ## Sensitive Files
 
 Never read or display the contents of:
