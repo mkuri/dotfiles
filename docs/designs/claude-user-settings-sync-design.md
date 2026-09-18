@@ -60,12 +60,30 @@ flowchart LR
 
 The shared lists carry only rules that are safe in *any* repository. `allow`
 covers routine git work and the GitHub CLI subcommands used by the issue and
-pull-request workflow, plus `gh api` restricted to read-shaped endpoint
-prefixes. `ask` narrows rules that a broad `allow` would otherwise swallow, such
-as force pushes and `gh api` invocations carrying a write-capable flag. `deny`
-is reserved for actions that should never run unattended: repository deletion,
-printing an auth token into the transcript, and writing a secret through a
-command-line argument.
+pull-request workflow, plus `gh api` restricted to endpoint prefixes that stay
+within the issue and pull-request workflow. `ask` narrows rules that a broad
+`allow` would otherwise swallow. `deny` is reserved for actions that should
+never run unattended: repository deletion, printing an auth token into the
+transcript, and writing a secret through a command-line argument.
+
+For `gh api`, `ask` selects on two different things. It selects on the *method
+flag* (`-X`, `--method`) because `gh api` reaches `DELETE`, `PATCH`, and `PUT`
+only through one, and because a `repos/*` allow rule otherwise reaches
+`gh api repos/{owner}/{repo} -X DELETE`, which is the same effect as the denied
+`gh repo delete`. It selects on the *endpoint* for the writes that a field flag
+alone can perform, since `gh api` switches to `POST` as soon as any field flag
+is present: repository transfer, deploy keys, webhooks, workflow and repository
+dispatches, pull-request reviews, and organization invitations. Ownership,
+standing credentials, arbitrary CI execution, review integrity, and org
+membership are the outcomes worth a prompt.
+
+Field flags themselves (`-f`, `-F`, `--field`, `--raw-field`, `--input`) are not
+in `ask`. Gating every one of them made the ordinary write path prompt —
+posting a comment, linking a sub-issue — while the operations it did stop, such
+as merging a pull request and closing an issue, were already allowed through
+their own `gh` subcommands. The remaining `POST` endpoints under the allowed
+prefixes are the routine ones, so the endpoint entries above carry the policy
+instead.
 
 Read-only git commands are exempt from prompting by Claude Code itself, so the
 shared `allow` list does not restate them. That exemption, and every prefix rule
@@ -100,6 +118,13 @@ symlink without a readable migration source.
   as `--method=POST` written with an equals sign in a form not listed, can still
   reach an allowed endpoint. Enforcement, where it is actually required, belongs
   to a `PreToolUse` hook or to GitHub branch protection.
+- `gh api graphql` is not in any shared list. It carries mutations that the
+  endpoint entries cannot describe, and it is left to the session's own
+  approval mode rather than gated here, because a blanket `ask` on it would also
+  stop the read-only queries the pull-request workflow depends on.
+- The endpoint entries in `ask` match on the endpoint alone, so a read of one of
+  those paths, such as listing a repository's webhooks, prompts as well. That is
+  accepted: those reads are rare next to the writes the entries exist to catch.
 - A follow-up cleanup may remove `claude/settings.json` and the legacy-symlink
   path after all intended machines have migrated.
 
@@ -123,3 +148,7 @@ symlink without a readable migration source.
   and GitHub CLI rules that are safe in every repository. Motivated by repeated
   approval prompts for routine git work; `agents/AGENTS.md` was corrected in the
   same change to stop recommending `git -C`, which defeats prefix matching.
+- 2026-09-19: Narrowed the `gh api` half of `ask` from every write-capable field
+  flag to the method flags plus the high-risk `POST` endpoints. The field-flag
+  entries prompted on routine comment and sub-issue writes while leaving equally
+  consequential allowed subcommands unprompted.
