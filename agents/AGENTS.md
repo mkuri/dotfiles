@@ -168,7 +168,7 @@ discovery, discussion, prioritization, and progress.
 
 - `docs/architecture/overview.md` describes the current architecture.
 - `docs/designs/` holds one living design document per feature; each records
-  that feature's design and a Decision log of its changes.
+  that feature's current design.
 - GitHub Issues own actionable and accepted deferred work.
 - Pull requests describe and verify the resulting implementation.
 - Do not maintain a Markdown backlog that duplicates GitHub Issues.
@@ -202,8 +202,8 @@ docs/
   tense. It describes the system as it exists now.
 - Keep one living design document per feature under `docs/designs/`, named for
   the feature (not dated). Each describes that feature's current intended
-  design; a Decision log at the end records how it changed over time. They are
-  not the source of truth for the current architecture.
+  design. They are not the source of truth for the current architecture; rely
+  on git history for how a document changed over time.
 - Add audience-oriented sections such as `guides/`, `reference/`, `api/`, or
   `operations/` only when corresponding content exists.
 - Keep one canonical location for each instruction or fact. Link to it instead
@@ -255,11 +255,9 @@ docs/
 - The body always describes the feature's current intended design. Include,
   where applicable: status, context, goals, non-goals, decision, alternatives,
   consequences, deferred work, and references.
-- End each document with a `Decision log` section: one dated entry per change,
-  summarizing what changed and why, with links to the issues and pull requests
-  behind it. This preserves decision history without dated files.
-- When a design changes, edit the feature's document in place and add a Decision
-  log entry. Do not create a new dated file for a refinement.
+- When a design changes, edit the feature's document in place instead of
+  creating a new dated file for a refinement. Rely on git history (commit
+  messages, `git log`, `git blame`) for how the design changed over time.
 - Use a small status vocabulary such as `Draft`, `Proposed`, `Approved`,
   `Superseded`, and `Rejected`. A living document normally stays `Approved`;
   mark it `Superseded` only when the whole feature is replaced, and link to its
@@ -271,7 +269,7 @@ docs/
   changes involving architecture, data models or migrations, external services,
   security boundaries, compatibility, rollout, or multiple meaningful
   implementation alternatives. A new feature starts a new document; a change to
-  an existing feature edits its document and adds a Decision log entry.
+  an existing feature edits its document in place.
 - Small bugs, tests, maintenance tasks, and changes within an established
   design need an issue but do not require a design-document change.
 
@@ -381,8 +379,8 @@ outweighs the overhead.
 #### Design Workflow
 
 1. Create a design discussion issue when discussion or tracking is useful.
-2. Create or update the feature's living design document under `docs/designs/`,
-   adding a Decision log entry for the change.
+2. Create or update the feature's living design document under
+   `docs/designs/`.
 3. Link the issue from the design document and the design document from the
    issue.
 4. Close the design discussion issue when the decision is captured and
