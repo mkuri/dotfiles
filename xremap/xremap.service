@@ -3,7 +3,7 @@ Description=xremap service
 
 [Service]
 Restart=always
-ExecStart=/home/makoto-kurihara/.local/bin/xremap /home/makoto-kurihara/.config/xremap/config.yml --watch=device
+ExecStart=/home/makoto/.local/bin/xremap /home/makoto/.config/xremap/config.yml --watch=device
 User=root
 Group=root
 
