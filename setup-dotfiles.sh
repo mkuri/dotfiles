@@ -34,6 +34,10 @@ if [ ! -e $XDG_CONFIG_HOME/gitui/key_bindings.ron ]; then
   ln -s --verbose $DOTDIR/gitui/key_bindings.ron $XDG_CONFIG_HOME/gitui/
 fi
 
+# mozc keymap customization is not symlinkable (lives inside a binary
+# config file mixed with personalization data); see mozc/README.md to
+# import mozc/keymap.ubuntu24.ibus-mozc.txt by hand on a new machine.
+
 # nvim
 # if [ ! -e $XDG_CONFIG_HOME/nvim/init.lua ]; then
 #   mkdir -p --verbose $XDG_CONFIG_HOME/nvim
