@@ -5,9 +5,9 @@ XDG_CONFIG_HOME=$HOME/.config
 XDG_DATA_HOME=$HOME/.local/share
 
 # alacritty
-if [ ! -e $XDG_CONFIG_HOME/alacritty/alacritty.yml ]; then
+if [ ! -e $XDG_CONFIG_HOME/alacritty/alacritty.toml ]; then
   mkdir -p --verbose $XDG_CONFIG_HOME/alacritty
-  ln -s --verbose $DOTDIR/alacritty/alacritty.yml $XDG_CONFIG_HOME/alacritty/
+  ln -s --verbose $DOTDIR/alacritty/alacritty.toml $XDG_CONFIG_HOME/alacritty/
 fi
 
 # bash
