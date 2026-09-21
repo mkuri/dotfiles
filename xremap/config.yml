@@ -1,8 +1,10 @@
 modmap:
   - name: SandS
     remap:
-      Space: [Shift_L, Space]
-        
+      Space:
+        held: Shift_L
+        alone: Space
+
   - name: alt henkan
     remap:
       KEY_LEFTALT:
