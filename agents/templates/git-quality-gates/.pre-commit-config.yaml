@@ -1,0 +1,32 @@
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: no-commit-to-branch
+        args: [--branch, main, --branch, master]
+      - id: detect-private-key
+      - id: check-added-large-files
+        args: [--maxkb=500]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.2
+    hooks:
+      - id: gitleaks
+
+  - repo: local
+    hooks:
+      - id: forbidden-paths
+        name: Block sensitive and temporary working files
+        entry: python3 scripts/check_forbidden_paths.py
+        language: system
+        pass_filenames: true
+      - id: commitlint
+        name: Check Conventional Commit message
+        entry: npx --no-install commitlint --edit
+        language: system
+        stages: [commit-msg]
+        pass_filenames: true
