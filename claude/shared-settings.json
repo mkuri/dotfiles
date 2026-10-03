@@ -40,6 +40,7 @@
       "Bash(gh pr edit *)",
       "Bash(gh pr ready *)",
       "Bash(gh pr comment *)",
+      "Bash(gh pr review *)",
       "Bash(gh pr merge *)",
       "Bash(gh pr close *)",
       "Bash(gh issue view *)",
@@ -82,8 +83,6 @@
       "Bash(gh api /repos/*/hooks*)",
       "Bash(gh api repos/*/dispatches*)",
       "Bash(gh api /repos/*/dispatches*)",
-      "Bash(gh api repos/*/pulls/*/reviews*)",
-      "Bash(gh api /repos/*/pulls/*/reviews*)",
       "Bash(gh api orgs/*/invitations*)",
       "Bash(gh api /orgs/*/invitations*)"
     ],

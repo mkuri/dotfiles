@@ -73,9 +73,8 @@ only through one, and because a `repos/*` allow rule otherwise reaches
 `gh repo delete`. It selects on the *endpoint* for the writes that a field flag
 alone can perform, since `gh api` switches to `POST` as soon as any field flag
 is present: repository transfer, deploy keys, webhooks, workflow and repository
-dispatches, pull-request reviews, and organization invitations. Ownership,
-standing credentials, arbitrary CI execution, review integrity, and org
-membership are the outcomes worth a prompt.
+dispatches, and organization invitations. Ownership, standing credentials,
+arbitrary CI execution, and org membership are the outcomes worth a prompt.
 
 Field flags themselves (`-f`, `-F`, `--field`, `--raw-field`, `--input`) are not
 in `ask`. Gating every one of them made the ordinary write path prompt —
@@ -84,6 +83,12 @@ as merging a pull request and closing an issue, were already allowed through
 their own `gh` subcommands. The remaining `POST` endpoints under the allowed
 prefixes are the routine ones, so the endpoint entries above carry the policy
 instead.
+
+Submitting a pull-request review does not prompt on either path. `gh pr review`
+is in `allow`, including `--approve` and `--request-changes`, and the
+pull-request reviews endpoint is not in `ask`, so the raw `gh api` path matches
+the subcommand. Repositories that depend on approvals must enforce that through
+GitHub branch protection.
 
 Read-only git commands are exempt from prompting by Claude Code itself, so the
 shared `allow` list does not restate them. That exemption, and every prefix rule
