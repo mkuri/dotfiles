@@ -21,6 +21,18 @@ fi
 alias ls='ls -la --color=auto'
 alias j='cd $(fd --type d --hidden . | fzf)'
 
+# history
+export HISTFILE=$XDG_DATA_HOME/bash/history
+export HISTSIZE=10000
+export HISTCONTROL=erasedups
+shopt -u histappend
+share_history(){
+  history -a
+  history -c
+  history -r
+}
+PROMPT_COMMAND='share_history'
+
 # bash-completion
 if ! shopt -oq posix; then
   if [ -f /usr/share/bash-completion/bash_completion ]; then
@@ -33,16 +45,6 @@ fi
 # fzf
 if command -v fzf > /dev/null 2>&1; then
   eval "$(fzf --bash)"
-fi
-
-# ble.sh
-if [ -f $XDG_DATA_HOME/bash/blesh/ble.sh ]; then
-  . $XDG_DATA_HOME/bash/blesh/ble.sh
-fi
-
-# atuin
-if command -v atuin > /dev/null 2>&1; then
-  eval "$(atuin init bash)"
 fi
 
 # python
