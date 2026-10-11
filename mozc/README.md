@@ -20,7 +20,7 @@ environment. If that happens, re-derive the 3 changes from the
 
 ## Why
 
-Left/Right Alt are remapped via xremap ([`xremap/config.yml`](../xremap/config.yml))
+Left/Right Alt are remapped via xremap ([`xremap/config.ubuntu*.yml`](../xremap/))
 so that tapping Left Alt sends `Muhenkan` and tapping Right Alt sends
 `Henkan`, to emulate macOS-style Eisu/Kana IME switching:
 `Henkan` activates IME, `Muhenkan` deactivates it.
