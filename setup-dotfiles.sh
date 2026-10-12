@@ -54,10 +54,10 @@ if [ ! -e $XDG_CONFIG_HOME/python/startup.py ]; then
   ln -s --verbose $DOTDIR/python/startup.py $XDG_CONFIG_HOME/python/
 fi
 
-# ranger
+# ranger (the config is kept per Ubuntu version in ranger/ubuntu<version>/)
 if [ ! -e $XDG_CONFIG_HOME/ranger/rc.conf ]; then
   mkdir -p --verbose $XDG_CONFIG_HOME/ranger
-  ln -s --verbose $DOTDIR/ranger/* $XDG_CONFIG_HOME/ranger/
+  ln -s --verbose $DOTDIR/ranger/ubuntu$(. /etc/os-release && echo ${VERSION_ID//./})/* $XDG_CONFIG_HOME/ranger/
 fi
 
 # readline
