@@ -57,7 +57,16 @@ fi
 # ranger
 if [ ! -e $XDG_CONFIG_HOME/ranger/rc.conf ]; then
   mkdir -p --verbose $XDG_CONFIG_HOME/ranger
-  ln -s --verbose $DOTDIR/ranger/* $XDG_CONFIG_HOME/ranger/
+  for f in $DOTDIR/ranger/*; do
+    if [ -f $f ]; then
+      ln -s --verbose $f $XDG_CONFIG_HOME/ranger/
+    fi
+  done
+  # Files under ranger/ubuntu<version>/ replace the common ones on that version
+  RANGER_UBUNTU_DIR=$DOTDIR/ranger/ubuntu$(. /etc/os-release && echo ${VERSION_ID//./})
+  if [ -d $RANGER_UBUNTU_DIR ]; then
+    ln -sf --verbose $RANGER_UBUNTU_DIR/* $XDG_CONFIG_HOME/ranger/
+  fi
 fi
 
 # readline
