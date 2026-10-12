@@ -54,19 +54,10 @@ if [ ! -e $XDG_CONFIG_HOME/python/startup.py ]; then
   ln -s --verbose $DOTDIR/python/startup.py $XDG_CONFIG_HOME/python/
 fi
 
-# ranger
+# ranger (the config is kept per Ubuntu version in ranger/ubuntu<version>/)
 if [ ! -e $XDG_CONFIG_HOME/ranger/rc.conf ]; then
   mkdir -p --verbose $XDG_CONFIG_HOME/ranger
-  for f in $DOTDIR/ranger/*; do
-    if [ -f $f ]; then
-      ln -s --verbose $f $XDG_CONFIG_HOME/ranger/
-    fi
-  done
-  # Files under ranger/ubuntu<version>/ replace the common ones on that version
-  RANGER_UBUNTU_DIR=$DOTDIR/ranger/ubuntu$(. /etc/os-release && echo ${VERSION_ID//./})
-  if [ -d $RANGER_UBUNTU_DIR ]; then
-    ln -sf --verbose $RANGER_UBUNTU_DIR/* $XDG_CONFIG_HOME/ranger/
-  fi
+  ln -s --verbose $DOTDIR/ranger/ubuntu$(. /etc/os-release && echo ${VERSION_ID//./})/* $XDG_CONFIG_HOME/ranger/
 fi
 
 # readline
