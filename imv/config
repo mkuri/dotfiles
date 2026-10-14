@@ -1,0 +1,6 @@
+[options]
+# Scale every image to fill the window, enlarging the ones smaller than it.
+scaling_mode = full
+
+# imv has no option to start maximized, so start fullscreen. "f" leaves it.
+fullscreen = true
