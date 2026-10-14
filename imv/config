@@ -2,8 +2,5 @@
 # Scale every image to fill the window, enlarging the ones smaller than it.
 scaling_mode = full
 
-# imv can start fullscreen but has no option to start maximized. Ask for a
-# window larger than the screen instead: GNOME maximizes a new window that
-# covers more than 80% of the work area (org.gnome.mutter auto-maximize).
-width = 4000
-height = 3000
+# imv has no option to start maximized, so start fullscreen. "f" leaves it.
+fullscreen = true
