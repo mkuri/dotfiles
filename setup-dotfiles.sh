@@ -74,7 +74,7 @@ fi
 # yazi
 if [ ! -e $XDG_CONFIG_HOME/yazi/yazi.toml ]; then
   mkdir -p --verbose $XDG_CONFIG_HOME/yazi
-  ln -s --verbose $DOTDIR/yazi/yazi.toml $XDG_CONFIG_HOME/yazi/
+  ln -s --verbose $DOTDIR/yazi/* $XDG_CONFIG_HOME/yazi/
 fi
 
 # xkeysnail

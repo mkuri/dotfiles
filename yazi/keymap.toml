@@ -1,0 +1,11 @@
+# Yazi keymap. Only overrides of the defaults live here; see
+# https://yazi-rs.github.io/docs/configuration/keymap for the full list.
+
+[mgr]
+# Swap the default quit keys: q quits without writing the cwd-file, so the
+# shell wrapper f stays where it was; Q writes it, so f changes into the
+# directory yazi was in.
+prepend_keymap = [
+  { on = "q", run = "quit --no-cwd-file", desc = "Quit without outputting cwd-file" },
+  { on = "Q", run = "quit",               desc = "Quit and output cwd-file" },
+]
