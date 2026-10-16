@@ -1,0 +1,14 @@
+# Yazi configuration. Only overrides of the defaults live here; see
+# https://yazi-rs.github.io/docs/configuration/yazi for the full list.
+
+[plugin]
+# Skip previews and preloads under /Volumes, where the SMB shares from the
+# home server are mounted. Each preview reads file contents over the network,
+# so leaving them on makes moving the cursor slow on a high-latency link.
+# Local external disks mounted under /Volumes lose previews too.
+prepend_previewers = [
+  { url = "/Volumes/**", run = "noop" },
+]
+prepend_preloaders = [
+  { url = "/Volumes/**", run = "noop" },
+]

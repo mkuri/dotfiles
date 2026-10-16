@@ -71,6 +71,12 @@ if [ ! -e $XDG_CONFIG_HOME/tmux/tmux.conf ]; then
   ln -s --verbose $DOTDIR/tmux/tmux.conf $XDG_CONFIG_HOME/tmux/
 fi
 
+# yazi
+if [ ! -e $XDG_CONFIG_HOME/yazi/yazi.toml ]; then
+  mkdir -p --verbose $XDG_CONFIG_HOME/yazi
+  ln -s --verbose $DOTDIR/yazi/yazi.toml $XDG_CONFIG_HOME/yazi/
+fi
+
 # xkeysnail
 # if [ ! -e $XDG_CONFIG_HOME/xkeysnail/config.py ]; then
 #   mkdir -p --verbose $XDG_CONFIG_HOME/xkeysnail
