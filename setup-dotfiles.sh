@@ -44,6 +44,12 @@ fi
 # config file mixed with personalization data); see mozc/README.md to
 # import mozc/keymap.ubuntu24.ibus-mozc.txt by hand on a new machine.
 
+# mpv
+if [ ! -e $XDG_CONFIG_HOME/mpv/image-input.conf ]; then
+  mkdir -p --verbose $XDG_CONFIG_HOME/mpv
+  ln -s --verbose $DOTDIR/mpv/image-input.conf $XDG_CONFIG_HOME/mpv/
+fi
+
 # nvim
 # if [ ! -e $XDG_CONFIG_HOME/nvim/init.lua ]; then
 #   mkdir -p --verbose $XDG_CONFIG_HOME/nvim

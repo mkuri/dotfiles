@@ -16,9 +16,20 @@ prepend_preloaders = [
 # Play media with mpv, as ranger's rifle.conf does, instead of the macOS
 # default handler (QuickTime Player). Video detaches into its own window;
 # audio plays in the terminal until mpv exits.
+#
+# Images open in mpv too, standing in for ranger's imv-dir: mpv starts at the
+# chosen image with the rest of its directory as the playlist, keeps each
+# image up until a key is pressed, and mpv/image-input.conf pages through the
+# images with the arrow keys. The window covers the screen without entering a
+# macOS fullscreen space; --window-maximized has no effect at startup on
+# macOS, so --geometry sizes and centers the window instead, and it keeps that
+# size across images of different shapes. yazi reads "%%" as a literal "%".
 [opener]
 mpv-video = [
   { run = "mpv %s", orphan = true, desc = "mpv", for = "unix" },
+]
+mpv-image = [
+  { run = "mpv --autocreate-playlist=same --image-display-duration=inf --geometry=100%%x100%%+50%%+50%% --keepaspect-window=no --auto-window-resize=no --input-conf=~/.config/mpv/image-input.conf %s", orphan = true, desc = "mpv (image)", for = "unix" },
 ]
 mpv-audio = [
   { run = "mpv %s", block = true, desc = "mpv (terminal)", for = "unix" },
@@ -26,6 +37,7 @@ mpv-audio = [
 
 [open]
 prepend_rules = [
+  { mime = "image/*", use = ["mpv-image", "open", "reveal"] },
   { mime = "video/*", use = ["mpv-video", "play", "reveal"] },
   { mime = "audio/*", use = ["mpv-audio", "play", "reveal"] },
 ]
