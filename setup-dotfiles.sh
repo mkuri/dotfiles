@@ -49,6 +49,10 @@ if [ ! -e $XDG_CONFIG_HOME/mpv/image-input.conf ]; then
   mkdir -p --verbose $XDG_CONFIG_HOME/mpv
   ln -s --verbose $DOTDIR/mpv/image-input.conf $XDG_CONFIG_HOME/mpv/
 fi
+if [ ! -e $XDG_CONFIG_HOME/mpv/input.conf ]; then
+  mkdir -p --verbose $XDG_CONFIG_HOME/mpv
+  ln -s --verbose $DOTDIR/mpv/input.conf $XDG_CONFIG_HOME/mpv/
+fi
 
 # nvim
 # if [ ! -e $XDG_CONFIG_HOME/nvim/init.lua ]; then
