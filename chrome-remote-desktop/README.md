@@ -27,6 +27,12 @@ Verified with Ubuntu 24.04 / GNOME on Xorg / `chrome-remote-desktop`
   server is never signalled by CRD.
 - Side effect: CRD's `setxkbmap -rules evdev` call is skipped, so the
   console keymap (and xremap) is left alone.
+- The CRD host turns off X key auto-repeat for as long as a client is
+  connected, so the local keyboard does not repeat during a remote
+  session. It normally restores repeat on disconnect, but occasionally
+  (seen after a long session) leaves it off. A watcher follows the
+  `chromoting` journal and runs `xset r on` on every
+  `Client disconnected:` line as a safety net.
 
 ## Requirements / caveats
 
@@ -58,6 +64,9 @@ Verified with Ubuntu 24.04 / GNOME on Xorg / `chrome-remote-desktop`
    which this setup avoids.
 
 ## After a CRD upgrade
+
+Re-run `./apply-mirror-patch.sh` after editing `mirror-patch.py` too; it
+re-patches from the saved `*.orig`.
 
 Package upgrades overwrite the launcher and revert to virtual sessions
 (symptom: connecting shows a separate, empty desktop). Re-apply and

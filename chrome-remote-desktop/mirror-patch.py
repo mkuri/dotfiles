@@ -16,6 +16,37 @@ def _mirror_find_display():
   return None
 
 
+_mirror_repeat_watcher_started = False
+
+
+def _mirror_start_repeat_watcher(env):
+  """Re-enable X key auto-repeat whenever a remote client disconnects.
+
+  The CRD host turns off auto-repeat on its X server while a client is
+  connected and normally restores it on disconnect, but sometimes leaves it
+  off. On a virtual session that is harmless; here it is the physical
+  console, so local key repeat would stay broken until `xset r on`.
+  """
+  global _mirror_repeat_watcher_started
+  if _mirror_repeat_watcher_started:
+    return
+  _mirror_repeat_watcher_started = True
+
+  def watch():
+    proc = subprocess.Popen(
+        ["journalctl", "--follow", "--lines=0", "--identifier=chromoting",
+         "--output=cat"],
+        stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+    for line in proc.stdout:
+      if line.startswith("Client disconnected:"):
+        # Let the host finish tearing down its input injector first.
+        time.sleep(1)
+        subprocess.call(["xset", "r", "on"], env=env,
+                        stderr=subprocess.DEVNULL)
+
+  threading.Thread(target=watch, daemon=True).start()
+
+
 def _mirror_launch_server(self, extra_x_args):
   display = _mirror_find_display()
   if display is None:
@@ -24,6 +55,7 @@ def _mirror_launch_server(self, extra_x_args):
   self.child_env["DISPLAY"] = ":%d" % display
   self.child_env["XAUTHORITY"] = "/run/user/%d/gdm/Xauthority" % os.getuid()
   self._wait_for_x()
+  _mirror_start_repeat_watcher(dict(self.child_env))
   # CRD only starts the host while server_proc is set, and SIGTERMs it on
   # teardown. Track a placeholder that exits when the real X server goes away,
   # so the physical X server is never signalled by CRD.
