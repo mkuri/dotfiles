@@ -5,7 +5,13 @@
 # Swap the default quit keys: q quits without writing the cwd-file, so the
 # shell wrapper f stays where it was; Q writes it, so f changes into the
 # directory yazi was in.
+#
+# g p runs the private-jump plugin, which each machine keeps outside this
+# repository in ~/.config/yazi/plugins/private-jump.yazi/main.lua, so the
+# destinations it jumps to stay out of version control. Without that plugin
+# the key only shows an error.
 prepend_keymap = [
   { on = "q", run = "quit --no-cwd-file", desc = "Quit without outputting cwd-file" },
   { on = "Q", run = "quit",               desc = "Quit and output cwd-file" },
+  { on = [ "g", "p" ], run = "plugin private-jump", desc = "Jump to a private place" },
 ]
