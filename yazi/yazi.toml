@@ -1,6 +1,11 @@
 # Yazi configuration. Only overrides of the defaults live here; see
 # https://yazi-rs.github.io/docs/configuration/yazi for the full list.
 
+# Sort numbers inside names by value, so file-999999 comes before
+# file-1003360 instead of after it.
+[mgr]
+sort_by = "natural"
+
 [plugin]
 # Skip previews and preloads under /Volumes, where the SMB shares from the
 # home server are mounted. Each preview reads file contents over the network,
