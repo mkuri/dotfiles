@@ -19,9 +19,9 @@ prepend_preloaders = [
 ]
 
 # Play media with mpv, as ranger's rifle.conf does, instead of the macOS
-# default handler (QuickTime Player). Video detaches into its own window;
-# audio plays in the terminal until mpv exits. --force-window keeps a window
-# up even when a file sent to mpv-video has no video track, so the detached
+# default handler (QuickTime Player). Video and audio both detach into their
+# own window, so yazi stays usable while something plays. --force-window
+# keeps a window up even when the file has no video track, so the detached
 # player can still be closed.
 #
 # Images open in mpv too, standing in for ranger's imv-dir: mpv starts at the
@@ -39,7 +39,7 @@ mpv-image = [
   { run = "mpv --autocreate-playlist=same --image-display-duration=inf --geometry=100%%x100%%+50%%+50%% --keepaspect-window=no --auto-window-resize=no --input-conf=~/.config/mpv/image-input.conf %s", orphan = true, desc = "mpv (image)", for = "unix" },
 ]
 mpv-audio = [
-  { run = "mpv %s", block = true, desc = "mpv (terminal)", for = "unix" },
+  { run = "mpv --force-window %s", orphan = true, desc = "mpv", for = "unix" },
 ]
 
 [open]
