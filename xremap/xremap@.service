@@ -1,0 +1,11 @@
+[Unit]
+Description=xremap service for %i
+
+[Service]
+Restart=always
+ExecStart=/home/%i/.local/bin/xremap /home/%i/.config/xremap/config.yml --watch=device
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
