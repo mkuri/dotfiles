@@ -38,7 +38,7 @@ bindkey "^N" history-beginning-search-forward-end
 unsetopt beep
 
 # completion
-zstyle :compinstall filename '$HOME/.zshrc'
+zstyle :compinstall filename "${ZDOTDIR:-$HOME}/.zshrc"
 autoload -Uz compinit
 compinit
 
