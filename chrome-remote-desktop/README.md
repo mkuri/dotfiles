@@ -63,6 +63,20 @@ Verified with Ubuntu 24.04 / GNOME on Xorg / `chrome-remote-desktop`
    `remotedesktop.google.com/access` requires the CRD Chrome extension,
    which this setup avoids.
 
+4. Make the service retry until you log in on the console. It starts at
+   boot, before the GNOME login, so without this it fails once with
+   `No X11 display owned by this user` and stays failed
+   ([`restart-until-login.conf`](restart-until-login.conf) retries every
+   30 s, which also covers logout → login):
+
+   ```sh
+   sudo install -D -m 644 restart-until-login.conf \
+     /etc/systemd/system/chrome-remote-desktop@.service.d/restart-until-login.conf
+   sudo systemctl daemon-reload
+   ```
+
+   Package upgrades do not touch this drop-in.
+
 ## After a CRD upgrade
 
 Re-run `./apply-mirror-patch.sh` after editing `mirror-patch.py` too; it
