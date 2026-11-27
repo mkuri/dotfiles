@@ -550,9 +550,20 @@ not use wildcard ports.
     object-lifecycle age); keep object-lock shorter than its retention; use async
     archiving and set archive-push-queue-max with an alert (overflow drops WAL and
     breaks the PITR chain). Rehearse restores.
-- Schema: Atlas by default, with the declarative schema as the source of truth;
-  generate versioned SQL → lint/review → apply; never apply a declarative diff
-  straight to production; make breaking changes gradually and forward-compatibly.
+- Schema: Atlas Community Edition (Apache-2.0), run only through its Docker
+  image pinned to a version tag (`arigaio/atlas:<version>-community`), with
+  `ATLAS_NO_UPDATE_NOTIFIER=true`. Do not log in or use Atlas Cloud; adopt Pro
+  only for a concrete need.
+  - Keep the declarative schema in plain SQL as the source of truth. Generate
+    versioned SQL with `migrate diff` against a disposable dev database, run
+    `migrate lint` and review, then commit the migrations with `atlas.sum`.
+  - Apply with `migrate apply` as a one-shot container before switching
+    containers. Never apply a declarative diff (`schema apply`) to production.
+  - Put views, functions, triggers, extensions, and RLS policies in
+    hand-written migration files: the Community Edition silently drops them
+    from the declarative schema.
+  - Make breaking changes gradually and forward-compatibly; there is no
+    `migrate down`, so roll back with a new forward migration.
 - Storage
   - Cloudflare R2 for delivery objects: the Go API issues presigned URLs; never
     hand keys to the client.
