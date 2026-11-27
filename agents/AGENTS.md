@@ -469,32 +469,34 @@ own reasoning (see Engineering Policy → no unsourced "best practice" claims).
 Default technology choices for personal, mobile, web, tools, and systems work.
 Deviate only with a concrete reason.
 
-### Local Development Port Allocation
+### Development Environments
 
-Reserve host ports by product slot so local services can run concurrently and
-OAuth callback URLs remain stable. Do not choose a port solely because it is
-currently unused.
+Run every product in three environments: local, staging, and production.
+Local never touches production resources or keys. Verify real third-party
+integrations (OAuth, payment webhooks, store purchases) first in staging, on a
+stable `staging.<product domain>` HTTPS URL, with accounts and projects
+separate from production. Develop locally by default; cloud development
+environments are optional.
 
-Use a one-digit product slot followed by the service's conventional four-digit
-port. For example, the canonical web and PostgreSQL ports for slot `2` are
-`28080` and `25432` respectively.
-
-| Product slot | Product | Web | PostgreSQL |
-|---|---|---:|---:|
-| `1` | peppercheck | `18080` | `15432` |
-| `2` | alt | `28080` | `25432` |
-| `3` | Reserved | `38080` | `35432` |
-| `4` | Reserved | `48080` | `45432` |
-
-For another locally exposed service, retain the product slot and use its
-conventional port suffix when it has four digits (for example, Redis for
-`alt` is `26379`). Record any exception in this table before using it. Keep
-container-internal ports conventional; this allocation applies only to host
-ports.
-
-Before creating a new OAuth client or redirect URI, assign the product's web
-port here and use the exact resulting callback URL. OAuth redirect URIs must
-not use wildcard ports.
+- In `compose.yaml`, publish container ports on loopback only and let Docker
+  choose the host port (`ports: ["127.0.0.1::8080"]`); find it with
+  `docker compose port <service> <port>`. Do not reserve host ports per
+  product.
+- Name each Compose project `<product>-<branch>` and pass it with `-p` from
+  the product's start script, so every worktree gets its own containers,
+  network, and volumes. Do not set a top-level `name:`, and do not name
+  networks or volumes explicitly.
+- Containers reach each other by service name (`db:5432`). Never put
+  host-side names such as `*.orb.local` or `*.localhost` in code or
+  configuration.
+- Locally, replace third-party services with their official emulators or test
+  modes: the Firebase Auth emulator with a `demo-` project, a Stripe sandbox
+  with `stripe listen --forward-to`, RevenueCat Test Store, and Garage for S3.
+  Never set `FIREBASE_AUTH_EMULATOR_HOST` outside local.
+- Tests that use a database start a throwaway PostgreSQL with
+  Testcontainers, so every run starts from the same state, locally and in CI.
+- Stripe: one sandbox each for local, CI, and staging. RevenueCat: one project
+  per product, with separate webhooks for production and sandbox events.
 
 ### Principles
 
@@ -624,7 +626,8 @@ not use wildcard ports.
     --project-id <id> -- <command>`) so its injected values override the local
     env file just for the fields that are true secrets, sharing a read-only
     `development` project/account across small projects when a free-tier cap
-    requires it.
+    requires it. When products share a project, prefix each secret name with
+    the product name in upper snake case (for example `P_SWITCH_`).
   - Treat manager credentials such as `BWS_ACCESS_TOKEN` as bootstrap secrets:
     inject them from a protected host or CI credential store, never place them in
     dotfiles or command-line arguments, and revoke or rotate them when exposure
@@ -643,6 +646,10 @@ not use wildcard ports.
 
 Start cheap and private; move down the list only when the need arises.
 
+- Light products: Cloudflare Workers, for code in a language Workers supports
+  first-class (not Go) whose data fits D1, KV, or R2, and for static sites
+  (Workers static assets). Go products and PostgreSQL-centric products use
+  containers.
 - Personal / private: Home Linux + Tailscale + Docker Compose
 - Small public: VPS + Caddy + Docker Compose
   - App and DB may share one host initially; never expose port 5432; off-VPS
