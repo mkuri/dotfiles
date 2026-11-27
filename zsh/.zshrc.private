@@ -42,6 +42,18 @@ zstyle :compinstall filename "${ZDOTDIR:-$HOME}/.zshrc"
 autoload -Uz compinit
 compinit
 
+# Cloudflare cf CLI completion, cached because generating it starts Node.
+# Regenerated whenever the installed cf is newer than the cache.
+if (( $+commands[cf] )); then
+  _cf_comp="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/cf-completion.zsh"
+  if [[ ! -s $_cf_comp || ${commands[cf]:A} -nt $_cf_comp ]]; then
+    mkdir -p "${_cf_comp:h}"
+    cf complete zsh >| "$_cf_comp" 2>/dev/null
+  fi
+  [[ -s $_cf_comp ]] && source "$_cf_comp"
+  unset _cf_comp
+fi
+
 # alias
 alias ls="ls -la --color=auto"
 j() {
