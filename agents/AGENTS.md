@@ -17,6 +17,20 @@ content committed to git or shown on GitHub (see GitHub Conventions → Language
 Code snippets, commands, file paths, and technical identifiers stay in their
 original form even inside explanations in another language.
 
+### Writing Japanese
+
+- For software terms, use the katakana word Japanese engineers normally use,
+  not a literal native translation: write `バージョン`, not `版`. When unsure,
+  prefer the katakana term.
+- Put no space between Japanese text and English words, numbers, or code
+  spans (`APIで`, `v0.1の`, `` `PSW`とする ``). On web pages, leave the visual
+  gap to CSS `text-autospace` instead of typing spaces.
+- Use full-width parentheses in Japanese text, even when they hold only
+  English (`家のネットワーク（tailnet）`, `（SDK）`), with no space inside or
+  outside. Keep code, formulas, and quoted UI strings as they are.
+- When parentheses end a sentence, put `。` after the closing parenthesis
+  (`…です（例を含む）。`).
+
 ## GitHub Conventions
 
 ### Language
@@ -520,7 +534,8 @@ not use wildcard ports.
 - Backend: Go, standard library first (net/http, ServeMux, context, log/slog,
   encoding/json, database/sql or pgx); avoid large web frameworks.
 - Web
-  - Default: Go html/template, htmx, Tailwind.
+  - Default: Go html/template, htmx, Tailwind. For Japanese pages, apply the
+    base CSS in the `japanese-web-typography` skill.
   - Next.js only for in-browser editors, complex drag-and-drop, offline support,
     advanced real-time UI, a required React-only library, or a dedicated frontend
     team; not merely because the product is commercial.
