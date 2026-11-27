@@ -101,7 +101,7 @@ export PATH=$PATH:$HOME/Library/Android/sdk/platform-tools
 export HOMEBREW_NO_UPGRADE_AUTO_UPDATES_CASKS=1
 
 # node
-export PATH="/opt/homebrew/opt/node@22/bin:$PATH"
+export PATH="/opt/homebrew/opt/node@26/bin:$PATH"
 
 # java
 export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
