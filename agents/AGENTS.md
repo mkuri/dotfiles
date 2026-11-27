@@ -495,6 +495,10 @@ environments are optional.
   Never set `FIREBASE_AUTH_EMULATOR_HOST` outside local.
 - Tests that use a database start a throwaway PostgreSQL with
   Testcontainers, so every run starts from the same state, locally and in CI.
+- For third-party services in tests and local runs, choose in this order: the
+  provider's official emulator, sandbox, or testnet; a widely used,
+  maintained mock or fake; a hand-written fake (for Go, a
+  `net/http/httptest` server). Write your own only when nothing else exists.
 - Stripe: one sandbox each for local, CI, and staging. RevenueCat: one project
   per product, with separate webhooks for production and sandbox events.
 
